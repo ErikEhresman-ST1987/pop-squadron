@@ -7,6 +7,7 @@ import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
 import { readOwnership } from './game/ownershipRules.js';
+import { SHOP_WEAPONS, purchaseWeapon } from './game/shopRules.js';
 import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 import { rewardForBalloon, addReward } from './game/currencyRules.js';
 import { readWallet, creditWallet } from './game/walletRules.js';
@@ -260,7 +261,7 @@ function renderWallet() {
 }
 let selectedMissionId = 1;
 let progress = readProgress(window.localStorage);
-const ownedWeapons = readOwnership(window.localStorage);
+let ownedWeapons = readOwnership(window.localStorage);
 let loadout = readLoadout(window.localStorage, ownedWeapons);
 let game;
 
@@ -316,6 +317,182 @@ function renderSlots() {
     slotContainer.append(row);
   }
 }
+const shopElement = document.getElementById('weapon-shop');
+const confirmation = document.getElementById('purchase-confirmation');
+const purchaseDetails = document.getElementById('purchase-details');
+let pendingPurchase = null;
+
+function closePurchase() {
+  pendingPurchase = null;
+  confirmation.hidden = true;
+}
+
+function renderShop() {
+  shopElement.replaceChildren();
+  for (const weapon of SHOP_WEAPONS) {
+    const owned = ownedWeapons.includes(weapon.id);
+    const row = document.createElement('div');
+    row.className = 'weapon-slot';
+    const details = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = weapon.name;
+    const price = document.createElement('span');
+    price.textContent = owned ? 'Permanently owned' : 'Price: 
+  hangar.hidden = false;
+  gameElement.hidden = true;
+  instructions.hidden = true;
+  document.getElementById('replay').hidden = true;
+  returnHangar.hidden = true;
+  document.getElementById('status').textContent = 'Hangar ready';
+  if (game) game.scene.stop('FlightScene');
+  closePurchase();
+  renderMissions();
+  renderWallet();
+  renderShop();
+}
+launch.addEventListener('click', () => {
+  if (!isMissionUnlocked(progress, selectedMissionId)) return;
+  if (!loadout.primary) {
+    saveStatus.textContent = 'Equip a primary weapon before launching';
+    return;
+  }
+  hangar.hidden = true;
+  gameElement.hidden = false;
+  instructions.hidden = false;
+  returnHangar.hidden = true;
+  if (!game) game = createGame();
+  else game.scene.start('FlightScene');
+});
+returnHangar.addEventListener('click', showHangar);
+renderSlots();
+renderMissions();
+renderWallet();
+renderShop();
+
+function createGame() {
+  return new Phaser.Game({
+  type:Phaser.AUTO,parent:'game',width:WIDTH,height:HEIGHT,backgroundColor:'#142c42',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:WIDTH,height:HEIGHT},
+  render:{pixelArt:false,antialias:true},scene:[FlightScene]
+  });
+}
+
+setupOffline();
+ + weapon.price;
+    details.append(title, price);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'equipment-toggle';
+    button.disabled = owned || walletBalance < weapon.price;
+    button.textContent = owned ? 'Owned' : walletBalance < weapon.price ? 'Not enough funds' : 'Buy · 
+  hangar.hidden = false;
+  gameElement.hidden = true;
+  instructions.hidden = true;
+  document.getElementById('replay').hidden = true;
+  returnHangar.hidden = true;
+  document.getElementById('status').textContent = 'Hangar ready';
+  if (game) game.scene.stop('FlightScene');
+  renderMissions();
+  renderWallet();
+}
+launch.addEventListener('click', () => {
+  if (!isMissionUnlocked(progress, selectedMissionId)) return;
+  if (!loadout.primary) {
+    saveStatus.textContent = 'Equip a primary weapon before launching';
+    return;
+  }
+  hangar.hidden = true;
+  gameElement.hidden = false;
+  instructions.hidden = false;
+  returnHangar.hidden = true;
+  if (!game) game = createGame();
+  else game.scene.start('FlightScene');
+});
+returnHangar.addEventListener('click', showHangar);
+renderSlots();
+renderMissions();
+renderWallet();
+
+function createGame() {
+  return new Phaser.Game({
+  type:Phaser.AUTO,parent:'game',width:WIDTH,height:HEIGHT,backgroundColor:'#142c42',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:WIDTH,height:HEIGHT},
+  render:{pixelArt:false,antialias:true},scene:[FlightScene]
+  });
+}
+
+setupOffline();
+ + weapon.price;
+    button.addEventListener('click', () => {
+      if (ownedWeapons.includes(weapon.id) || walletBalance < weapon.price) return;
+      pendingPurchase = weapon.id;
+      purchaseDetails.textContent = 'Purchase ' + weapon.name + ' for 
+  hangar.hidden = false;
+  gameElement.hidden = true;
+  instructions.hidden = true;
+  document.getElementById('replay').hidden = true;
+  returnHangar.hidden = true;
+  document.getElementById('status').textContent = 'Hangar ready';
+  if (game) game.scene.stop('FlightScene');
+  renderMissions();
+  renderWallet();
+}
+launch.addEventListener('click', () => {
+  if (!isMissionUnlocked(progress, selectedMissionId)) return;
+  if (!loadout.primary) {
+    saveStatus.textContent = 'Equip a primary weapon before launching';
+    return;
+  }
+  hangar.hidden = true;
+  gameElement.hidden = false;
+  instructions.hidden = false;
+  returnHangar.hidden = true;
+  if (!game) game = createGame();
+  else game.scene.start('FlightScene');
+});
+returnHangar.addEventListener('click', showHangar);
+renderSlots();
+renderMissions();
+renderWallet();
+
+function createGame() {
+  return new Phaser.Game({
+  type:Phaser.AUTO,parent:'game',width:WIDTH,height:HEIGHT,backgroundColor:'#142c42',
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:WIDTH,height:HEIGHT},
+  render:{pixelArt:false,antialias:true},scene:[FlightScene]
+  });
+}
+
+setupOffline();
+ + weapon.price + '? It will remain yours permanently. Equip it separately.';
+      confirmation.hidden = false;
+    });
+    row.append(details, button);
+    shopElement.append(row);
+  }
+}
+document.getElementById('cancel-purchase').addEventListener('click', closePurchase);
+document.getElementById('confirm-purchase').addEventListener('click', () => {
+  if (!pendingPurchase) return;
+  const id = pendingPurchase;
+  closePurchase();
+  const result = purchaseWeapon(window.localStorage, id);
+  if (result.ok) {
+    walletBalance = result.balance;
+    ownedWeapons = result.owned;
+    saveStatus.textContent = 'Weapon purchased and saved · Select Equip to use it';
+    renderSlots();
+  } else {
+    walletBalance = readWallet(window.localStorage);
+    saveStatus.textContent = result.reason === 'funds' ? 'Not enough funds' :
+      result.reason === 'owned' ? 'Weapon already owned' :
+      result.reason === 'recovery' ? 'Purchase interrupted · Check wallet before retrying' :
+      'Purchase could not be saved · No weapon unlocked';
+  }
+  renderWallet();
+  renderShop();
+});
+
 function showHangar() {
   hangar.hidden = false;
   gameElement.hidden = true;
