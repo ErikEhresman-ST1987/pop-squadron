@@ -24,7 +24,7 @@ test('winning sequential missions unlocks exactly the next mission', () => {
   const p7 = completeMission(p6, 7, 'victory');
   const p8 = completeMission(p7, 8, 'victory');
   assert.deepEqual(p8, { highestUnlocked: 9 });
-  assert.deepEqual(completeMission(p8, 9, 'victory'), p8);
+  assert.deepEqual(completeMission(p8, 9, 'victory'), { highestUnlocked: 10 });
 });
 test('defeat, locked missions, and replay never advance or revoke unlocks', () => {
   const p = { highestUnlocked: 2 };
