@@ -62,7 +62,7 @@ export const MISSIONS = Object.freeze([
     wave(64500, 'formation', 16, 139, ['durable', 'basic', 'layered'])
   ]),
   mission(8, 'Mission 8: Balloon Barrage', 'Intense', [
-    wave(1200, 'formation', 11, 116, ['basic', 'durable', 'layered']),
+    wave(1200, 'formation', 12, 116, ['basic', 'durable', 'layered']),
     wave(12000, 'drift', 12, 124, ['durable', 'layered', 'basic']),
     wave(22800, 'formation', 13, 130, ['layered', 'basic', 'durable']),
     wave(33600, 'drift', 14, 136, ['durable', 'layered', 'basic']),
