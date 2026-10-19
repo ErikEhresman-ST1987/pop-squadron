@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import './style.css';
 import { setupOffline } from './offline.js';
 import { MISSION, MissionRules } from './game/missionRules.js';
+import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -66,16 +67,43 @@ class FlightScene extends Phaser.Scene {
       const x = wave.pattern === 'formation' ? 40 + i * (280 / Math.max(1,wave.count-1)) : 40 + ((i*73+this.waveIndex*29)%280);
       const y = -28 - i*42;
       const id = this.nextId++;
-      const color = wave.pattern === 'formation' ? 0xff7598 : 0xffc16b;
-      const circle = this.add.circle(x,y,13,color).setStrokeStyle(2,0xfff4d6).setDepth(2);
-      this.balloons.set(id,{id,circle,originX:x,age:0,speed:wave.speed,pattern:wave.pattern,phase:i*1.6});
+      const type = wave.types ? wave.types[i % wave.types.length] : 'basic';
+      const state = createBalloonState(id, type);
+      const stage = balloonAppearance(state);
+      const circle = this.add.circle(x,y,stage.radius,this.balloonColor(type,0)).setStrokeStyle(2,0xfff4d6).setDepth(2);
+      this.balloons.set(id,{id,state,circle,originX:x,age:0,speed:wave.speed,pattern:wave.pattern,phase:i*1.6});
     }
+  }
+  balloonColor(type, removed) {
+    if (type === 'layered') return [0x9c86f5, 0x55bfe5, 0xff779a][removed];
+    if (type === 'durable') return [0xf9be63, 0xe89848, 0xc66b42][removed];
+    return 0xff779a;
+  }
+  damageBalloon(balloon) {
+    const result = hitBalloon(balloon.state);
+    if (result.event === 'ignored') return;
+    balloon.state = result.state;
+    if (result.event === 'pop') {
+      this.resolveBalloon(balloon, 'pop');
+      return;
+    }
+    const removed = balloon.state.remainingHits;
+    const stage = balloonAppearance(balloon.state);
+    balloon.circle.setRadius(stage.radius);
+    balloon.circle.setFillStyle(this.balloonColor(balloon.state.type, 3 - removed));
+    balloon.circle.setStrokeStyle(3,0xffffff);
+    // The same balloon object keeps its position, movement pattern and identity.
   }
   fire() {
     const bullet = this.add.rectangle(this.aircraft.x,this.aircraft.y-25,4,15,0xb3f7ff).setDepth(3);
     this.shots.push({shape:bullet});
   }
   resolveBalloon(balloon, kind) {
+    if (kind !== 'pop') {
+      const result = removeBalloon(balloon.state,kind);
+      if (result.event === 'ignored') return;
+      balloon.state = result.state;
+    }
     if (!this.rules.resolve(balloon.id,kind)) return;
     balloon.circle.destroy();
     this.balloons.delete(balloon.id);
@@ -125,19 +153,19 @@ class FlightScene extends Phaser.Scene {
       if (shot.shape.y < -20) {shot.shape.destroy();this.shots.splice(i,1);continue;}
       let hit=null;
       for (const balloon of this.balloons.values()) {
-        if (Math.abs(shot.shape.x-balloon.circle.x)<15 && Math.abs(shot.shape.y-balloon.circle.y)<20) {hit=balloon;break;}
+        if (Math.abs(shot.shape.x-balloon.circle.x)<balloon.circle.radius+2 && Math.abs(shot.shape.y-balloon.circle.y)<balloon.circle.radius+7) {hit=balloon;break;}
       }
       if (hit) {
         shot.shape.destroy();this.shots.splice(i,1);
-        this.resolveBalloon(hit,'pop');
+        this.damageBalloon(hit);
       }
     }
     for (const balloon of [...this.balloons.values()]) {
       balloon.age+=dt;
-      balloon.circle.y+=balloon.speed*dt;
+      balloon.circle.y+=balloon.speed*balloonAppearance(balloon.state).speedMultiplier*dt;
       if (balloon.pattern==='drift') balloon.circle.x=clamp(balloon.originX+Math.sin(balloon.age*2+balloon.phase)*34,15,WIDTH-15);
-      if (balloon.circle.y>HEIGHT+16) {this.resolveBalloon(balloon,'escape');continue;}
-      if (this.elapsed>=this.invulnerableUntil && Math.hypot(balloon.circle.x-this.aircraft.x,balloon.circle.y-this.aircraft.y)<25) this.resolveBalloon(balloon,'collision');
+      if (balloon.circle.y>HEIGHT+balloon.circle.radius) {this.resolveBalloon(balloon,'escape');continue;}
+      if (this.elapsed>=this.invulnerableUntil && Math.hypot(balloon.circle.x-this.aircraft.x,balloon.circle.y-this.aircraft.y)<balloon.circle.radius+12) this.resolveBalloon(balloon,'collision');
     }
     if (this.aircraft.alpha<1 && this.elapsed>=this.invulnerableUntil) this.aircraft.alpha=1;
     const result=this.rules.checkVictory(this.waveIndex===MISSION.waves.length,this.balloons.size);
