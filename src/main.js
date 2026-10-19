@@ -8,6 +8,7 @@ import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
 import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 import { rewardForBalloon, addReward } from './game/currencyRules.js';
+import { readWallet, creditWallet } from './game/walletRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -131,7 +132,11 @@ class FlightScene extends Phaser.Scene {
     }
     if (!this.rules.resolve(balloon.id,kind)) return;
     if (kind === 'pop') {
-      this.missionEarnings = addReward(this.missionEarnings, rewardForBalloon(balloon.state.type, kind));
+      const reward = rewardForBalloon(balloon.state.type, kind);
+      this.missionEarnings = addReward(this.missionEarnings, reward);
+      const credited = creditWallet(window.localStorage, walletBalance, reward);
+      walletBalance = credited.balance;
+      walletSaved = credited.saved;
     }
     balloon.circle.destroy();
     this.balloons.delete(balloon.id);
@@ -164,7 +169,7 @@ class FlightScene extends Phaser.Scene {
           : 'Next mission unlocked for this session; storage unavailable';
       }
     }
-    document.getElementById('status').textContent = outcome==='victory'?'Mission complete':'Mission failed';
+    document.getElementById('status').textContent = (outcome==='victory'?'Mission complete':'Mission failed') + (walletSaved ? '' : ' · Wallet storage unavailable');
     document.getElementById('replay').hidden = false;
     document.getElementById('return-hangar').hidden = false;
   }
@@ -246,6 +251,12 @@ const launch = document.getElementById('launch');
 const slotContainer = document.getElementById('loadout-slots');
 const saveStatus = document.getElementById('save-status');
 const missionList = document.getElementById('mission-list');
+const walletElement = document.getElementById('wallet-balance');
+let walletBalance = readWallet(window.localStorage);
+let walletSaved = true;
+function renderWallet() {
+  walletElement.textContent = 'Wallet: $' + walletBalance + (walletSaved ? '' : ' · Not saved');
+}
 let selectedMissionId = 1;
 let progress = readProgress(window.localStorage);
 let loadout = readLoadout(window.localStorage);
@@ -309,6 +320,7 @@ function showHangar() {
   document.getElementById('status').textContent = 'Hangar ready';
   if (game) game.scene.stop('FlightScene');
   renderMissions();
+  renderWallet();
 }
 launch.addEventListener('click', () => {
   if (!isMissionUnlocked(progress, selectedMissionId)) return;
@@ -322,6 +334,7 @@ launch.addEventListener('click', () => {
 returnHangar.addEventListener('click', showHangar);
 renderSlots();
 renderMissions();
+renderWallet();
 
 function createGame() {
   return new Phaser.Game({
