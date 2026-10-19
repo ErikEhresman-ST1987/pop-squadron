@@ -91,6 +91,32 @@ class FlightScene extends Phaser.Scene {
       this.balloons.set(id,{id,state,circle,originX:x,age:0,speed:wave.speed,pattern:wave.pattern,phase:i*1.6});
     }
   }
+  spawnBoss() {
+    this.bossSpawned = true;
+    const shape = this.add.circle(WIDTH / 2, 105, CITY_PARK_BOSS.radius, 0xf27ab9)
+      .setStrokeStyle(5, 0xffe59b).setDepth(3);
+    this.boss = { shape, health: CITY_PARK_BOSS.health, age: 0 };
+    this.bossLabel = this.add.text(WIDTH / 2, 35, 'GIANT PARTY BALLOON',
+      { fontFamily: 'system-ui', fontSize: '15px', color: '#fff0c9' }).setOrigin(.5).setDepth(9);
+    this.bossBar = this.add.rectangle(WIDTH / 2, 55, 250, 12, 0x6de2a6).setDepth(9);
+  }
+  hitBoss() {
+    if (!this.boss) return;
+    this.boss.health = bossHit(this.boss.health);
+    this.bossBar.width = 250 * this.boss.health / CITY_PARK_BOSS.health;
+    if (bossPhase(this.boss.health) === 'reinforcements' &&
+        !Number.isFinite(this.nextReinforcementAt))
+      this.nextReinforcementAt = this.elapsed + 2500;
+    if (this.boss.health === 0) {
+      this.boss.shape.destroy();
+      this.bossBar.destroy();
+      this.bossLabel.destroy();
+      this.boss = null;
+      for (const balloon of this.balloons.values()) balloon.circle.destroy();
+      this.balloons.clear();
+      this.finish('victory');
+    }
+  }
   balloonColor(type, removed) {
     if (type === 'layered') return [0x9c86f5, 0x55bfe5, 0xff779a][removed];
     if (type === 'durable') return [0xf9be63, 0xe89848, 0xc66b42][removed];
