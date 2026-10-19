@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { LOADOUT_KEY, SLOTS, defaultLoadout, normalizeLoadout, readLoadout, saveLoadout } from '../src/game/loadoutRules.js';
 import { OWNERSHIP_KEY, readOwnership, saveOwnership, normalizeOwnership } from '../src/game/ownershipRules.js';
 import { WALLET_KEY, readWallet } from '../src/game/walletRules.js';
-import { PROGRESS_KEY, readProgress } from '../src/game/progressionRules.js';
 
 const starter = { primary: 'forward', 'secondary-1': null, 'secondary-2': null };
 const previous = { primary: 'forward', 'secondary-1': 'sides', 'secondary-2': 'tracking' };
