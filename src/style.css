@@ -30,3 +30,11 @@
 .purchase-actions{display:flex;gap:8px}
 .purchase-actions button{flex:1;min-height:44px;border-radius:8px;border:1px solid #8aabc4;background:#28445d;color:#f3f7ff;font-weight:700}
 #confirm-purchase{background:#71cbb6;color:#071a24;border-color:#71cbb6}
+
+/* Increment 8.1B: compact sector and mission navigation */
+.sector-selector{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.sector-choice{min-height:44px;border:1px solid #7895ac;background:#28445d;color:#f3f7ff;border-radius:8px;padding:10px 14px;font-size:14px;font-weight:700}
+.sector-choice[aria-pressed="true"]{background:#71cbb6;color:#071a24;border-color:#71cbb6}
+#mission-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+#mission-list .mission-choice{min-height:60px;padding:7px 3px;text-align:center;font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+#launch:disabled{opacity:.6;cursor:not-allowed}
