@@ -1,10 +1,10 @@
 export const MISSION = Object.freeze({
   health: 100, collisionDamage: 20, escapeAllowance: 5,
   waves: [
-    { at: 1200, pattern: 'formation', count: 5, speed: 70 },
-    { at: 16000, pattern: 'drift', count: 6, speed: 82 },
-    { at: 33000, pattern: 'formation', count: 7, speed: 88 },
-    { at: 52000, pattern: 'drift', count: 8, speed: 96 }
+    { at: 1200, pattern: 'formation', count: 5, speed: 70, types: ['basic'] },
+    { at: 16000, pattern: 'drift', count: 6, speed: 82, types: ['basic', 'durable', 'basic'] },
+    { at: 33000, pattern: 'formation', count: 7, speed: 88, types: ['basic', 'layered', 'basic'] },
+    { at: 52000, pattern: 'drift', count: 8, speed: 96, types: ['durable', 'basic', 'layered', 'basic'] }
   ]
 });
 
