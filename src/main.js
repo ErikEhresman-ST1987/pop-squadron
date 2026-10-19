@@ -19,6 +19,8 @@ class FlightScene extends Phaser.Scene {
     this.balloons = new Map();
     this.shots = [];
     this.weaponState = initialWeaponState();
+    // Snapshot equipment on mission start; hangar edits apply only to the next mission.
+    this.equippedWeaponIds = SLOTS.map(slot => loadout[slot.id]).filter(Boolean);
     this.invulnerableUntil = 0;
     this.finished = false;
     this.cameras.main.setBackgroundColor('#142c42');
@@ -168,7 +170,7 @@ class FlightScene extends Phaser.Scene {
     }
     const firing = advanceWeapons(this.weaponState, delta,
       { x: this.aircraft.x, y: this.aircraft.y },
-      [...this.balloons.values()].map(balloon => ({ id: balloon.id, x: balloon.circle.x, y: balloon.circle.y, resolved: balloon.state.resolved })));
+      [...this.balloons.values()].map(balloon => ({ id: balloon.id, x: balloon.circle.x, y: balloon.circle.y, resolved: balloon.state.resolved })), this.equippedWeaponIds);
     this.weaponState = firing.state;
     for (const volley of firing.volleys) this.fireVolley(volley);
     for (let i=this.shots.length-1;i>=0;i--) {
