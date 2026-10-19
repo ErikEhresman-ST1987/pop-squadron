@@ -1,0 +1,20 @@
+{
+  "name": "Pop Squadron",
+  "short_name": "Pop Squadron",
+  "description": "Offline balloon-shooter flight game",
+  "id": "/pop-squadron/",
+  "start_url": "/pop-squadron/",
+  "scope": "/pop-squadron/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#091522",
+  "theme_color": "#102439",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
