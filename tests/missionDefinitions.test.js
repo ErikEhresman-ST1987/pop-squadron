@@ -4,11 +4,11 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('nine ordered authored missions with stable lookup', () => {
+test('ten ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
-    [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss']
+    [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss'], [10, 'Boss']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
