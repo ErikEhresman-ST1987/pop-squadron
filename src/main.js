@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import './style.css';
 import { setupOffline } from './offline.js';
 import { MissionRules } from './game/missionRules.js';
-import { MISSIONS, getMission } from './game/missionDefinitions.js';
+import { getMission } from './game/missionDefinitions.js';
+import { SECTORS, getSector, getSectorForMission } from './game/sectorDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
@@ -253,6 +254,7 @@ const launch = document.getElementById('launch');
 const slotContainer = document.getElementById('loadout-slots');
 const saveStatus = document.getElementById('save-status');
 const missionList = document.getElementById('mission-list');
+const sectorSelector = document.getElementById('sector-selector');
 const walletElement = document.getElementById('wallet-balance');
 let walletBalance = readWallet(window.localStorage);
 let walletSaved = true;
@@ -265,24 +267,52 @@ let ownedWeapons = readOwnership(window.localStorage);
 let loadout = readLoadout(window.localStorage, ownedWeapons);
 let game;
 
+// Only the first sector is available until boss-completion progression exists.
+let selectedSectorId = 1;
 function renderMissions() {
+  sectorSelector.replaceChildren();
+  const unlockedSectorIds = [1];
+  if (!unlockedSectorIds.includes(selectedSectorId)) selectedSectorId = 1;
+  for (const sector of SECTORS.filter(item => unlockedSectorIds.includes(item.id))) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'sector-choice';
+    button.setAttribute('aria-pressed', String(sector.id === selectedSectorId));
+    button.textContent = 'Sector ' + sector.id + ' · ' + sector.name;
+    button.addEventListener('click', () => {
+      selectedSectorId = sector.id;
+      renderMissions();
+    });
+    sectorSelector.append(button);
+  }
   missionList.replaceChildren();
-  for (const mission of MISSIONS) {
-    const available = isMissionUnlocked(progress, mission.id);
+  const sector = getSector(selectedSectorId);
+  const selectedMission = getMission(selectedMissionId);
+  if (!selectedMission || !isMissionUnlocked(progress, selectedMissionId) ||
+      getSectorForMission(selectedMissionId)?.id !== selectedSectorId) {
+    selectedMissionId = sector.firstMissionId;
+  }
+  for (let id = sector.firstMissionId; id <= sector.lastMissionId; id++) {
+    const mission = getMission(id);
+    const available = Boolean(mission) && isMissionUnlocked(progress, id);
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'mission-choice';
     button.disabled = !available;
-    button.setAttribute('aria-pressed', String(available && mission.id === selectedMissionId));
-    button.textContent = mission.name + ' · ' + mission.difficulty + (available ? '' : ' · Locked');
+    button.setAttribute('aria-pressed', String(available && id === selectedMissionId));
+    const label = id === sector.bossMissionId ? 'Boss' : 'Mission';
+    button.textContent = label + ' ' + (id - sector.firstMissionId + 1) +
+      (mission ? (available ? '' : ' · Locked') : ' · Coming soon');
+    button.setAttribute('aria-label', 'Sector ' + sector.id + ', ' + button.textContent);
     if (available) button.addEventListener('click', () => {
-      selectedMissionId = mission.id;
+      selectedMissionId = id;
       renderMissions();
     });
     missionList.append(button);
   }
-  if (!isMissionUnlocked(progress, selectedMissionId)) selectedMissionId = 1;
-  launch.textContent = 'Launch ' + getMission(selectedMissionId).name;
+  const active = getMission(selectedMissionId);
+  launch.disabled = !active || !isMissionUnlocked(progress, selectedMissionId);
+  launch.textContent = active && !launch.disabled ? 'Launch ' + active.name : 'No mission available';
 }
 
 function renderSlots() {
@@ -390,7 +420,8 @@ function showHangar() {
   renderShop();
 }
 launch.addEventListener('click', () => {
-  if (!isMissionUnlocked(progress, selectedMissionId)) return;
+  if (!getMission(selectedMissionId) || !isMissionUnlocked(progress, selectedMissionId) ||
+      getSectorForMission(selectedMissionId)?.id !== selectedSectorId) return;
   if (!loadout.primary) {
     saveStatus.textContent = 'Equip a primary weapon before launching';
     return;
