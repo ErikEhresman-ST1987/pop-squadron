@@ -30,3 +30,4 @@ jobs:
           path: dist
       - id: deployment
         uses: actions/deploy-pages@v4
+# Deployment refresh after switching GitHub Pages source to Actions.
