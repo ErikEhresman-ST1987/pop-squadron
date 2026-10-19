@@ -142,7 +142,7 @@ class FlightScene extends Phaser.Scene {
     this.updateHud();
   }
   updateHud() {
-    this.hud.setText('HP '+this.rules.health+'   Escapes '+this.rules.escapes+'/'+this.mission.escapeAllowance+'\nPopped '+this.rules.popped+'   Wave '+Math.min(this.waveIndex+1,this.mission.waves.length)+'/'+this.mission.waves.length+'\nMission Earnings 
+    this.hud.setText('HP '+this.rules.health+'   Escapes '+this.rules.escapes+'/'+this.mission.escapeAllowance+'\nPopped '+this.rules.popped+'   Wave '+Math.min(this.waveIndex+1,this.mission.waves.length)+'/'+this.mission.waves.length+'\nMission Earnings '+String.fromCharCode(36)+this.missionEarnings);
   }
   finish(outcome) {
     if (this.finished) return;
@@ -154,7 +154,7 @@ class FlightScene extends Phaser.Scene {
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes+'\nMission Earnings: 
+    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes+'\nMission Earnings: '+String.fromCharCode(36)+this.missionEarnings,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8',align:'center',lineSpacing:7}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
