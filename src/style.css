@@ -16,3 +16,9 @@
 .equipment-toggle[aria-pressed="true"]{background:#71cbb6;color:#071a24;border-color:#71cbb6}
 #launch,#return-hangar{background:#71cbb6;color:#071a24;border:0;border-radius:8px;padding:12px 20px;font-size:16px;font-weight:700;min-height:48px;cursor:pointer}
 #return-hangar{background:#d0dfec}
+
+.mission-heading{font-size:14px;letter-spacing:.1em;text-align:center;margin:4px 0 0}
+#mission-list{display:flex;flex-direction:column;gap:8px}
+.mission-choice{min-height:44px;width:100%;text-align:left;border-radius:8px;border:1px solid #7895ac;background:#28445d;color:#f3f7ff;padding:10px 12px;font-size:14px;font-weight:650}
+.mission-choice[aria-pressed="true"]{background:#71cbb6;border-color:#71cbb6;color:#071a24}
+.mission-choice:disabled{opacity:.58;color:#d1dce5;cursor:not-allowed}
