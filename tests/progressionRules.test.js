@@ -14,7 +14,12 @@ test('winning sequential missions unlocks exactly the next mission', () => {
   assert.deepEqual(p1, { highestUnlocked: 2 });
   const p2 = completeMission(p1, 2, 'victory');
   assert.deepEqual(p2, { highestUnlocked: 3 });
-  assert.deepEqual(completeMission(p2, 3, 'victory'), p2);
+  const p3 = completeMission(p2, 3, 'victory');
+  assert.deepEqual(p3, { highestUnlocked: 4 });
+  const p4 = completeMission(p3, 4, 'victory');
+  const p5 = completeMission(p4, 5, 'victory');
+  assert.deepEqual(p5, { highestUnlocked: 6 });
+  assert.deepEqual(completeMission(p5, 6, 'victory'), p5);
 });
 test('defeat, locked missions, and replay never advance or revoke unlocks', () => {
   const p = { highestUnlocked: 2 };
@@ -37,4 +42,16 @@ test('corrupt and unsupported storage fails safely', () => {
   assert.deepEqual(normalizeProgress({ highestUnlocked: 99 }), defaultProgress());
   assert.deepEqual(normalizeProgress({ highestUnlocked: 2.5 }), defaultProgress());
   assert.deepEqual(normalizeProgress({ highestUnlocked: '3' }), defaultProgress());
+});
+
+test('previously saved Mission 3 unlock persists and advances to Mission 4', () => {
+  const data = new Map([[PROGRESS_KEY, JSON.stringify({ highestUnlocked: 3 })]]);
+  const storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
+  const previous = readProgress(storage);
+  assert.equal(isMissionUnlocked(previous, 3), true);
+  assert.equal(isMissionUnlocked(previous, 4), false);
+  const next = completeMission(previous, 3, 'victory');
+  assert.equal(next.highestUnlocked, 4);
+  assert.equal(saveProgress(storage, next), true);
+  assert.equal(readProgress(storage).highestUnlocked, 4);
 });
