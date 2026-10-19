@@ -4,10 +4,11 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('six ordered authored missions with stable lookup', () => {
+test('nine ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
-    [4, 'Building'], [5, 'Fast'], [6, 'Armored']
+    [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
+    [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -63,4 +64,16 @@ test('Missions 4–6 retain five escapes and increase pressure in different ways
     m.waves.reduce((n, w) => n + w.types.length, 0);
   assert.ok(toughShare(six) > toughShare(five));
   for (const m of [four, five, six]) assert.equal(m.escapeAllowance, 5);
+});
+
+test('Missions 7–9 have five escapes, supported waves and a modest pressure increase', () => {
+  const [six, seven, eight, nine] = MISSIONS.slice(5);
+  assert.deepEqual([seven.name, eight.name, nine.name], [
+    'Mission 7: Crosswinds', 'Mission 8: Balloon Barrage', 'Mission 9: Final Approach'
+  ]);
+  const count = m => m.waves.reduce((n, w) => n + w.count, 0);
+  assert.ok(count(six) < count(seven) && count(seven) < count(eight) && count(eight) < count(nine));
+  assert.ok(eight.waves[1].at - eight.waves[0].at < seven.waves[1].at - seven.waves[0].at);
+  assert.ok(nine.waves.at(-1).speed > eight.waves.at(-1).speed);
+  for (const m of [seven, eight, nine]) assert.equal(m.escapeAllowance, 5);
 });
