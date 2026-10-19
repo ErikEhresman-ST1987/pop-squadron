@@ -22,3 +22,11 @@
 .mission-choice{min-height:44px;width:100%;text-align:left;border-radius:8px;border:1px solid #7895ac;background:#28445d;color:#f3f7ff;padding:10px 12px;font-size:14px;font-weight:650}
 .mission-choice[aria-pressed="true"]{background:#71cbb6;border-color:#71cbb6;color:#071a24}
 .mission-choice:disabled{opacity:.58;color:#d1dce5;cursor:not-allowed}
+
+#weapon-shop{display:flex;flex-direction:column;gap:9px}
+.equipment-toggle:disabled{opacity:.7;cursor:not-allowed}
+.purchase-confirmation{border:2px solid #71cbb6;border-radius:9px;padding:12px;background:#203b53;text-align:center}
+.purchase-confirmation p{margin:0 0 12px;font-size:14px;line-height:1.5}
+.purchase-actions{display:flex;gap:8px}
+.purchase-actions button{flex:1;min-height:44px;border-radius:8px;border:1px solid #8aabc4;background:#28445d;color:#f3f7ff;font-weight:700}
+#confirm-purchase{background:#71cbb6;color:#071a24;border-color:#71cbb6}
