@@ -344,7 +344,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -712,7 +711,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -902,7 +900,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes+'\nMission Earnings: 
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -1092,7 +1089,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -1460,7 +1456,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -1828,7 +1823,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -2196,7 +2190,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -2386,7 +2379,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes+'\nMission Earnings: 
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -2576,7 +2568,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
@@ -2944,7 +2935,6 @@ setupOffline();
     this.aircraft.alpha = 1;
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
-    this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     if (outcome === 'victory') {
       const updated = completeMission(progress, this.mission.id, outcome);
       if (updated.highestUnlocked > progress.highestUnlocked) {
