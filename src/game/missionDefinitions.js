@@ -76,6 +76,11 @@ export const MISSIONS = Object.freeze([
     wave(34200, 'formation', 15, 139, ['layered', 'durable', 'basic']),
     wave(45200, 'drift', 16, 143, ['durable', 'layered', 'basic']),
     wave(56200, 'formation', 17, 147, ['layered', 'durable', 'basic'])
+  ]),
+  mission(10, 'Mission 10: Giant Party Balloon', 'Boss', [
+    wave(1200, 'formation', 7, 105, ['basic', 'durable']),
+    wave(11500, 'drift', 8, 115, ['basic', 'layered', 'durable']),
+    wave(22500, 'formation', 9, 120, ['durable', 'basic', 'layered'])
   ])
 ]);
 
