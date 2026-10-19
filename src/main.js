@@ -223,9 +223,33 @@ class FlightScene extends Phaser.Scene {
       this.waveIndex++;
       this.updateHud();
     }
+    if (this.mission.id === 10 && !this.bossSpawned &&
+        this.waveIndex === this.mission.waves.length && this.balloons.size === 0 &&
+        this.elapsed >= CITY_PARK_BOSS.enterAfterMs) this.spawnBoss();
+    if (this.boss) {
+      this.boss.age += dt;
+      this.boss.shape.x = WIDTH / 2 + Math.sin(this.boss.age * 1.35) * 112;
+      this.boss.shape.y = 105 + Math.sin(this.boss.age * 1.9) * 24;
+      if (this.elapsed >= this.nextReinforcementAt) {
+        this.spawnWave({ count: 3, pattern: 'drift', speed: 113,
+          types: CITY_PARK_BOSS.reinforcementTypes });
+        this.nextReinforcementAt += CITY_PARK_BOSS.reinforcementIntervalMs;
+      }
+      if (this.elapsed >= this.invulnerableUntil &&
+          Math.hypot(this.boss.shape.x - this.aircraft.x, this.boss.shape.y - this.aircraft.y) <
+          CITY_PARK_BOSS.radius + 12) {
+        this.rules.health = Math.max(0, this.rules.health - this.mission.collisionDamage);
+        this.invulnerableUntil = this.elapsed + 750;
+        this.aircraft.alpha = .5;
+        this.updateHud();
+        if (this.rules.health === 0) { this.finish('defeat'); return; }
+      }
+    }
     const firing = advanceWeapons(this.weaponState, delta,
       { x: this.aircraft.x, y: this.aircraft.y },
-      [...this.balloons.values()].map(balloon => ({ id: balloon.id, x: balloon.circle.x, y: balloon.circle.y, resolved: balloon.state.resolved })), this.equippedWeaponIds);
+      [...this.balloons.values()].map(balloon => ({ id: balloon.id, x: balloon.circle.x, y: balloon.circle.y, resolved: balloon.state.resolved }))
+        .concat(this.boss ? [{ id: 'boss', x: this.boss.shape.x, y: this.boss.shape.y, resolved: false }] : []),
+      this.equippedWeaponIds);
     this.weaponState = firing.state;
     for (const volley of firing.volleys) this.fireVolley(volley);
     for (let i=this.shots.length-1;i>=0;i--) {
@@ -272,7 +296,8 @@ class FlightScene extends Phaser.Scene {
       if (this.elapsed>=this.invulnerableUntil && Math.hypot(balloon.circle.x-this.aircraft.x,balloon.circle.y-this.aircraft.y)<balloon.circle.radius+12) this.resolveBalloon(balloon,'collision');
     }
     if (this.aircraft.alpha<1 && this.elapsed>=this.invulnerableUntil) this.aircraft.alpha=1;
-    const result=this.rules.checkVictory(this.waveIndex===this.mission.waves.length,this.balloons.size);
+    const result = this.mission.id === 10 ? this.rules.outcome :
+      this.rules.checkVictory(this.waveIndex === this.mission.waves.length, this.balloons.size);
     if (result) this.finish(result);
   }
 }
