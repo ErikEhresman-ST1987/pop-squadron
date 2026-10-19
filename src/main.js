@@ -6,6 +6,7 @@ import { MISSIONS, getMission } from './game/missionDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
+import { readOwnership } from './game/ownershipRules.js';
 import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 import { rewardForBalloon, addReward } from './game/currencyRules.js';
 import { readWallet, creditWallet } from './game/walletRules.js';
@@ -259,7 +260,8 @@ function renderWallet() {
 }
 let selectedMissionId = 1;
 let progress = readProgress(window.localStorage);
-let loadout = readLoadout(window.localStorage);
+const ownedWeapons = readOwnership(window.localStorage);
+let loadout = readLoadout(window.localStorage, ownedWeapons);
 let game;
 
 function renderMissions() {
@@ -296,13 +298,16 @@ function renderSlots() {
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'equipment-toggle';
+    const owned = ownedWeapons.includes(slot.weaponId);
     const equipped = loadout[slot.id] === slot.weaponId;
-    toggle.textContent = equipped ? 'Equipped' : 'Unequipped';
+    toggle.disabled = !owned;
+    toggle.textContent = !owned ? 'Locked · Shop coming soon' : equipped ? 'Equipped' : 'Unequipped';
     toggle.setAttribute('aria-pressed', String(equipped));
     toggle.setAttribute('aria-label', slot.name + ': ' + (equipped ? 'equipped' : 'unequipped'));
     toggle.addEventListener('click', () => {
+      if (!owned) return;
       loadout = { ...loadout, [slot.id]: equipped ? null : slot.weaponId };
-      saveStatus.textContent = saveLoadout(window.localStorage, loadout)
+      saveStatus.textContent = saveLoadout(window.localStorage, loadout, ownedWeapons)
         ? 'Equipment saved on this device'
         : 'Storage unavailable: equipment may not persist';
       renderSlots();
@@ -324,6 +329,10 @@ function showHangar() {
 }
 launch.addEventListener('click', () => {
   if (!isMissionUnlocked(progress, selectedMissionId)) return;
+  if (!loadout.primary) {
+    saveStatus.textContent = 'Equip a primary weapon before launching';
+    return;
+  }
   hangar.hidden = true;
   gameElement.hidden = false;
   instructions.hidden = false;
