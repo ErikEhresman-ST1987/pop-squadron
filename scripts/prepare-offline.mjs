@@ -1,0 +1,62 @@
+import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { join, relative, sep } from 'node:path';
+
+const root = 'dist';
+const prefix = '/pop-squadron/';
+async function walk(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const results = [];
+  for (const entry of entries) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) results.push(...await walk(path));
+    else if (entry.isFile() && entry.name !== 'sw.js') results.push(path);
+  }
+  return results;
+}
+const paths = (await walk(root)).sort();
+if (!paths.some(p => p.endsWith('index.html')) || !paths.some(p => p.endsWith('manifest.webmanifest')) || !paths.some(p => p.includes('assets'))) {
+  throw new Error('Offline build is missing HTML, manifest, or compiled assets.');
+}
+const urls = paths.map(p => prefix + relative(root, p).split(sep).join('/'));
+const hash = createHash('sha256');
+for (const path of paths) {
+  hash.update(relative(root, path));
+  hash.update(await readFile(path));
+}
+const cache = 'pop-squadron-static-' + hash.digest('hex').slice(0, 16);
+const source = `const CACHE = ${JSON.stringify(cache)};
+const ASSETS = ${JSON.stringify(urls)};
+const SCOPE = '/pop-squadron/';
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await cache.addAll(ASSETS);
+    await self.skipWaiting();
+  })());
+});
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.filter(name => name.startsWith('pop-squadron-static-') && name !== CACHE).map(name => caches.delete(name)));
+    await self.clients.claim();
+  })());
+});
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin || !url.pathname.startsWith(SCOPE)) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    if (request.mode === 'navigate') {
+      try {
+        const response = await fetch(request);
+        if (response.ok) return response;
+      } catch {}
+      return await cache.match(SCOPE + 'index.html') || Response.error();
+    }
+    return await cache.match(request) || fetch(request);
+  })());
+});`;
+await writeFile(join(root, 'sw.js'), source + '\n');
+console.log('Offline bundle ready:', urls.length, 'assets; cache', cache);
