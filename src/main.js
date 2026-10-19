@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import './style.css';
+import { setupOffline } from './offline.js';
 import { MISSION, MissionRules } from './game/missionRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
@@ -148,3 +149,5 @@ new Phaser.Game({
   scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:WIDTH,height:HEIGHT},
   render:{pixelArt:false,antialias:true},scene:[FlightScene]
 });
+
+setupOffline();
