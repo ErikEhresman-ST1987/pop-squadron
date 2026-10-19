@@ -4,6 +4,7 @@ import { setupOffline } from './offline.js';
 import { MISSION, MissionRules } from './game/missionRules.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
+import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -146,6 +147,7 @@ class FlightScene extends Phaser.Scene {
     this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
     document.getElementById('status').textContent = outcome==='victory'?'Mission complete':'Mission failed';
     document.getElementById('replay').hidden = false;
+    document.getElementById('return-hangar').hidden = false;
   }
   update(_time, delta) {
     if (this.finished) return;
@@ -217,10 +219,71 @@ class FlightScene extends Phaser.Scene {
     if (result) this.finish(result);
   }
 }
-new Phaser.Game({
+const hangar = document.getElementById('hangar');
+const gameElement = document.getElementById('game');
+const instructions = document.querySelector('.instructions');
+const returnHangar = document.getElementById('return-hangar');
+const launch = document.getElementById('launch');
+const slotContainer = document.getElementById('loadout-slots');
+const saveStatus = document.getElementById('save-status');
+let loadout = readLoadout(window.localStorage);
+let game;
+
+function renderSlots() {
+  slotContainer.replaceChildren();
+  for (const slot of SLOTS) {
+    const row = document.createElement('div');
+    row.className = 'weapon-slot';
+    const details = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = slot.label;
+    const name = document.createElement('span');
+    name.textContent = slot.name;
+    details.append(title, name);
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'equipment-toggle';
+    const equipped = loadout[slot.id] === slot.weaponId;
+    toggle.textContent = equipped ? 'Equipped' : 'Unequipped';
+    toggle.setAttribute('aria-pressed', String(equipped));
+    toggle.setAttribute('aria-label', slot.name + ': ' + (equipped ? 'equipped' : 'unequipped'));
+    toggle.addEventListener('click', () => {
+      loadout = { ...loadout, [slot.id]: equipped ? null : slot.weaponId };
+      saveStatus.textContent = saveLoadout(window.localStorage, loadout)
+        ? 'Equipment saved on this device'
+        : 'Storage unavailable: equipment may not persist';
+      renderSlots();
+    });
+    row.append(details, toggle);
+    slotContainer.append(row);
+  }
+}
+function showHangar() {
+  hangar.hidden = false;
+  gameElement.hidden = true;
+  instructions.hidden = true;
+  document.getElementById('replay').hidden = true;
+  returnHangar.hidden = true;
+  document.getElementById('status').textContent = 'Hangar ready';
+  if (game) game.scene.stop('FlightScene');
+}
+launch.addEventListener('click', () => {
+  hangar.hidden = true;
+  gameElement.hidden = false;
+  instructions.hidden = false;
+  returnHangar.hidden = true;
+  if (!game) game = createGame();
+  else game.scene.start('FlightScene');
+});
+returnHangar.addEventListener('click', showHangar);
+renderSlots();
+
+function createGame() {
+  return new Phaser.Game({
   type:Phaser.AUTO,parent:'game',width:WIDTH,height:HEIGHT,backgroundColor:'#142c42',
   scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:WIDTH,height:HEIGHT},
   render:{pixelArt:false,antialias:true},scene:[FlightScene]
-});
+  });
+}
 
 setupOffline();
