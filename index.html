@@ -7,6 +7,12 @@
   <p id="wallet-balance" class="hangar-note" aria-live="polite">Wallet: $0</p>
   <p class="hangar-help">Configure your three weapon slots before launch.</p>
   <div id="loadout-slots"></div>
+  <h3 class="mission-heading" id="shop-heading">WEAPON SHOP</h3>
+  <div id="weapon-shop" aria-labelledby="shop-heading"></div>
+  <div id="purchase-confirmation" class="purchase-confirmation" role="group" aria-label="Confirm weapon purchase" hidden>
+    <p id="purchase-details"></p>
+    <div class="purchase-actions"><button type="button" id="confirm-purchase">Confirm purchase</button><button type="button" id="cancel-purchase">Cancel</button></div>
+  </div>
   <h3 class="mission-heading">SELECT MISSION</h3>
   <div id="mission-list" role="group" aria-label="Available missions"></div>
   <p class="hangar-note">Complete each mission to unlock the next. Completed missions stay replayable.</p>
