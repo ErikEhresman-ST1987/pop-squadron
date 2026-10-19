@@ -6,6 +6,7 @@ import { MISSIONS, getMission } from './game/missionDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
+import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -149,6 +150,15 @@ class FlightScene extends Phaser.Scene {
     this.add.rectangle(WIDTH/2,HEIGHT/2,310,160,0x091522,.94).setDepth(10).setStrokeStyle(2,0x6aaac4);
     this.add.text(WIDTH/2,HEIGHT/2-40,outcome==='victory'?'MISSION COMPLETE':'MISSION FAILED',{fontFamily:'system-ui',fontSize:'24px',fontStyle:'bold',color:'#f3f7ff'}).setOrigin(.5).setDepth(11);
     this.add.text(WIDTH/2,HEIGHT/2+12,'Popped: '+this.rules.popped+'   Escapes: '+this.rules.escapes,{fontFamily:'system-ui',fontSize:'16px',color:'#b9d7e8'}).setOrigin(.5).setDepth(11);
+    if (outcome === 'victory') {
+      const updated = completeMission(progress, this.mission.id, outcome);
+      if (updated.highestUnlocked > progress.highestUnlocked) {
+        progress = updated;
+        saveStatus.textContent = saveProgress(window.localStorage, progress)
+          ? this.mission.name + ' complete · Next mission unlocked!'
+          : 'Next mission unlocked for this session; storage unavailable';
+      }
+    }
     document.getElementById('status').textContent = outcome==='victory'?'Mission complete':'Mission failed';
     document.getElementById('replay').hidden = false;
     document.getElementById('return-hangar').hidden = false;
@@ -231,14 +241,15 @@ const launch = document.getElementById('launch');
 const slotContainer = document.getElementById('loadout-slots');
 const saveStatus = document.getElementById('save-status');
 const missionList = document.getElementById('mission-list');
-let selectedMissionId = 1; // Unlock persistence arrives in Checkpoint 5.3.
+let selectedMissionId = 1;
+let progress = readProgress(window.localStorage);
 let loadout = readLoadout(window.localStorage);
 let game;
 
 function renderMissions() {
   missionList.replaceChildren();
   for (const mission of MISSIONS) {
-    const available = mission.id === 1; // Checkpoint 5.3 will supply unlocked missions.
+    const available = isMissionUnlocked(progress, mission.id);
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'mission-choice';
@@ -251,6 +262,7 @@ function renderMissions() {
     });
     missionList.append(button);
   }
+  if (!isMissionUnlocked(progress, selectedMissionId)) selectedMissionId = 1;
   launch.textContent = 'Launch ' + getMission(selectedMissionId).name;
 }
 
@@ -291,8 +303,10 @@ function showHangar() {
   returnHangar.hidden = true;
   document.getElementById('status').textContent = 'Hangar ready';
   if (game) game.scene.stop('FlightScene');
+  renderMissions();
 }
 launch.addEventListener('click', () => {
+  if (!isMissionUnlocked(progress, selectedMissionId)) return;
   hangar.hidden = true;
   gameElement.hidden = false;
   instructions.hidden = false;
