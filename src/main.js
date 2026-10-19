@@ -12,6 +12,7 @@ import { SHOP_WEAPONS, purchaseWeapon } from './game/shopRules.js';
 import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 import { rewardForBalloon, addReward } from './game/currencyRules.js';
 import { readWallet, creditWallet } from './game/walletRules.js';
+import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward } from './game/bossRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -32,6 +33,9 @@ class FlightScene extends Phaser.Scene {
     this.equippedWeaponIds = SLOTS.map(slot => loadout[slot.id]).filter(Boolean);
     this.invulnerableUntil = 0;
     this.finished = false;
+    this.boss = null;
+    this.bossSpawned = false;
+    this.nextReinforcementAt = Infinity;
     this.cameras.main.setBackgroundColor('#142c42');
     const grid = this.add.graphics().setDepth(-2);
     grid.lineStyle(1, 0x3d6582, 0.4);
@@ -261,6 +265,9 @@ let walletSaved = true;
 function renderWallet() {
   walletElement.textContent = 'Wallet: $' + walletBalance + (walletSaved ? '' : ' · Not saved');
 }
+const BOSS_KEY = 'pop-squadron-city-park-boss-v1';
+let bossDefeated = false;
+try { bossDefeated = localStorage.getItem(BOSS_KEY) === 'true'; } catch {}
 let selectedMissionId = 1;
 let progress = readProgress(window.localStorage);
 let ownedWeapons = readOwnership(window.localStorage);
@@ -271,7 +278,7 @@ let game;
 let selectedSectorId = 1;
 function renderMissions() {
   sectorSelector.replaceChildren();
-  const unlockedSectorIds = [1];
+  const unlockedSectorIds = bossDefeated ? [1, 2] : [1];
   if (!unlockedSectorIds.includes(selectedSectorId)) selectedSectorId = 1;
   for (const sector of SECTORS.filter(item => unlockedSectorIds.includes(item.id))) {
     const button = document.createElement('button');
@@ -290,7 +297,7 @@ function renderMissions() {
   const selectedMission = getMission(selectedMissionId);
   if (!selectedMission || !isMissionUnlocked(progress, selectedMissionId) ||
       getSectorForMission(selectedMissionId)?.id !== selectedSectorId) {
-    selectedMissionId = sector.firstMissionId;
+    selectedMissionId = sector.id === 1 ? sector.firstMissionId : null;
   }
   for (let id = sector.firstMissionId; id <= sector.lastMissionId; id++) {
     const mission = getMission(id);
