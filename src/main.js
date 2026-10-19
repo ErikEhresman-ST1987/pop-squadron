@@ -3,6 +3,7 @@ import './style.css';
 import { setupOffline } from './offline.js';
 import { MISSION, MissionRules } from './game/missionRules.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
+import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -16,7 +17,7 @@ class FlightScene extends Phaser.Scene {
     this.nextId = 1;
     this.balloons = new Map();
     this.shots = [];
-    this.fireElapsed = 0;
+    this.weaponState = initialWeaponState();
     this.invulnerableUntil = 0;
     this.finished = false;
     this.cameras.main.setBackgroundColor('#142c42');
@@ -94,9 +95,25 @@ class FlightScene extends Phaser.Scene {
     balloon.circle.setStrokeStyle(3,0xffffff);
     // The same balloon object keeps its position, movement pattern and identity.
   }
-  fire() {
-    const bullet = this.add.rectangle(this.aircraft.x,this.aircraft.y-25,4,15,0xb3f7ff).setDepth(3);
-    this.shots.push({shape:bullet});
+  fireVolley(volley) {
+    if (volley.weaponId === 'tracking') {
+      const target = this.balloons.get(volley.targetId);
+      if (!target) return;
+      const shape = this.add.circle(this.aircraft.x, this.aircraft.y - 18, 5, 0xb69cff).setDepth(3);
+      this.shots.push({ shape, kind: 'tracking', targetId: volley.targetId, lifetime: 0 });
+      return;
+    }
+    const offsets = volley.weaponId === 'sides' ? [-24, 24] : [0];
+    for (const offset of offsets) {
+      const shape = this.add.rectangle(this.aircraft.x + offset, this.aircraft.y - 25,
+        volley.weaponId === 'sides' ? 4 : 4, volley.weaponId === 'sides' ? 12 : 15,
+        volley.weaponId === 'sides' ? 0xffc979 : 0xb3f7ff).setDepth(3);
+      this.shots.push({ shape, kind: 'straight', lifetime: 0 });
+    }
+  }
+  removeShot(index) {
+    this.shots[index].shape.destroy();
+    this.shots.splice(index, 1);
   }
   resolveBalloon(balloon, kind) {
     if (kind !== 'pop') {
@@ -119,6 +136,8 @@ class FlightScene extends Phaser.Scene {
   finish(outcome) {
     if (this.finished) return;
     this.finished = true;
+    for (const shot of this.shots) shot.shape.destroy();
+    this.shots = [];
     this.dragPointer = null;
     this.previousPointer = null;
     this.aircraft.alpha = 1;
@@ -145,18 +164,44 @@ class FlightScene extends Phaser.Scene {
       this.waveIndex++;
       this.updateHud();
     }
-    this.fireElapsed += delta;
-    while (this.fireElapsed>=240) {this.fireElapsed-=240;this.fire();}
+    const firing = advanceWeapons(this.weaponState, delta,
+      { x: this.aircraft.x, y: this.aircraft.y },
+      [...this.balloons.values()].map(balloon => ({ id: balloon.id, x: balloon.circle.x, y: balloon.circle.y, resolved: balloon.state.resolved })));
+    this.weaponState = firing.state;
+    for (const volley of firing.volleys) this.fireVolley(volley);
     for (let i=this.shots.length-1;i>=0;i--) {
       const shot=this.shots[i];
-      shot.shape.y-=440*dt;
-      if (shot.shape.y < -20) {shot.shape.destroy();this.shots.splice(i,1);continue;}
+      shot.lifetime += dt;
+      if (shot.kind === 'tracking') {
+        const target = this.balloons.get(shot.targetId);
+        if (!target || shot.lifetime > 3) { this.removeShot(i); continue; }
+        const dx = target.circle.x - shot.shape.x;
+        const dy = target.circle.y - shot.shape.y;
+        const distance = Math.hypot(dx, dy);
+        const step = 320 * dt;
+        if (distance > 0) {
+          shot.shape.x += dx / distance * Math.min(step, distance);
+          shot.shape.y += dy / distance * Math.min(step, distance);
+        }
+      } else {
+        shot.shape.y -= 440 * dt;
+      }
+      if (shot.shape.y < -20 || shot.shape.y > HEIGHT+20 || shot.shape.x < -20 || shot.shape.x > WIDTH+20) {
+        this.removeShot(i); continue;
+      }
       let hit=null;
-      for (const balloon of this.balloons.values()) {
-        if (Math.abs(shot.shape.x-balloon.circle.x)<balloon.circle.radius+2 && Math.abs(shot.shape.y-balloon.circle.y)<balloon.circle.radius+7) {hit=balloon;break;}
+      const candidates = shot.kind === 'tracking'
+        ? [this.balloons.get(shot.targetId)].filter(Boolean)
+        : this.balloons.values();
+      for (const balloon of candidates) {
+        const tolerance = shot.kind === 'tracking' ? 5 : 2;
+        if (Math.abs(shot.shape.x-balloon.circle.x)<balloon.circle.radius+tolerance &&
+            Math.abs(shot.shape.y-balloon.circle.y)<balloon.circle.radius+(shot.kind === 'tracking' ? 5 : 7)) {
+          hit=balloon;break;
+        }
       }
       if (hit) {
-        shot.shape.destroy();this.shots.splice(i,1);
+        this.removeShot(i);
         this.damageBalloon(hit);
       }
     }
