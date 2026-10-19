@@ -49,11 +49,12 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     if (request.mode === 'navigate') {
-      try {
-        const response = await fetch(request);
-        if (response.ok) return response;
-      } catch {}
-      return await cache.match(SCOPE + 'index.html') || Response.error();
+      // The page must come from the SAME precached build as its JS and CSS.
+      // A network-first HTML response could reference a newer bundle than
+      // the active service worker has cached, breaking offline startup.
+      const page = await cache.match(SCOPE + 'index.html');
+      if (page) return page;
+      return fetch(request);
     }
     return await cache.match(request) || fetch(request);
   })());
