@@ -29,12 +29,14 @@ export function nearestTarget(origin, targets, maxRange = WEAPONS.tracking.range
 
 // Each weapon advances independently. A tracking opportunity with no target
 // is skipped, not banked for a later burst.
-export function advanceWeapons(state, deltaMs, origin, targets = []) {
+export function advanceWeapons(state, deltaMs, origin, targets = [], equippedWeaponIds = WEAPON_ORDER) {
   if (!Number.isFinite(deltaMs) || deltaMs < 0) throw new RangeError('deltaMs must be finite and nonnegative');
   const next = {};
   const volleys = [];
+  const enabled = new Set(equippedWeaponIds);
   for (const id of WEAPON_ORDER) {
     const weapon = WEAPONS[id];
+    if (!enabled.has(id)) { next[id] = 0; continue; }
     const elapsed = state[id] + deltaMs;
     if (!Number.isFinite(state[id]) || state[id] < 0 || state[id] >= weapon.intervalMs || !Number.isFinite(elapsed)) throw new RangeError('Invalid weapon timer');
     const opportunities = Math.floor(elapsed / weapon.intervalMs);
