@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import './style.css';
 import { setupOffline } from './offline.js';
-import { MISSION, MissionRules } from './game/missionRules.js';
+import { MissionRules } from './game/missionRules.js';
+import { getMission } from './game/missionDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
@@ -12,7 +13,8 @@ const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
 class FlightScene extends Phaser.Scene {
   constructor() { super('FlightScene'); }
   create() {
-    this.rules = new MissionRules();
+    this.mission = getMission(1); // Mission selection is introduced in Checkpoint 5.2.
+    this.rules = new MissionRules(this.mission);
     this.elapsed = 0;
     this.waveIndex = 0;
     this.nextId = 1;
@@ -61,7 +63,7 @@ class FlightScene extends Phaser.Scene {
     window.addEventListener('blur', this.blurHandler);
     this.events.once('shutdown', () => window.removeEventListener('blur', this.blurHandler));
     this.updateHud();
-    document.getElementById('status').textContent = 'Mission 1 · Automatic fire enabled';
+    document.getElementById('status').textContent = this.mission.name + ' · Automatic fire enabled';
     const replay = document.getElementById('replay');
     replay.hidden = true;
     replay.onclick = () => this.scene.restart();
@@ -134,7 +136,7 @@ class FlightScene extends Phaser.Scene {
     this.updateHud();
   }
   updateHud() {
-    this.hud.setText('HP '+this.rules.health+'   Escapes '+this.rules.escapes+'/'+MISSION.escapeAllowance+'\nPopped '+this.rules.popped+'   Wave '+Math.min(this.waveIndex+1,MISSION.waves.length)+'/'+MISSION.waves.length);
+    this.hud.setText('HP '+this.rules.health+'   Escapes '+this.rules.escapes+'/'+this.mission.escapeAllowance+'\nPopped '+this.rules.popped+'   Wave '+Math.min(this.waveIndex+1,this.mission.waves.length)+'/'+MISSION.waves.length);
   }
   finish(outcome) {
     if (this.finished) return;
