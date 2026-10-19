@@ -64,3 +64,21 @@ test('invalid timing and invalid targeting inputs fail safely', () => {
   assert.equal(nearestTarget({ x: NaN, y: 0 }, targets), null);
   assert.equal(nearestTarget(origin, [{ id: 3, x: NaN, y: 1 }]), null);
 });
+
+test('unequipped weapons never fire and their cooldowns remain reset', () => {
+  const result = advanceWeapons(initialWeaponState(), 3000, origin, targets, ['forward', 'tracking']);
+  assert.equal(result.volleys.some(v => v.weaponId === 'sides'), false);
+  assert.equal(result.volleys.filter(v => v.weaponId === 'forward').length, 12);
+  assert.equal(result.volleys.filter(v => v.weaponId === 'tracking').length, 2);
+  assert.equal(result.state.sides, 0);
+});
+test('fully unequipped loadout fires nothing', () => {
+  const result = advanceWeapons(initialWeaponState(), 3000, origin, targets, []);
+  assert.deepEqual(result.volleys, []);
+  assert.deepEqual(result.state, initialWeaponState());
+});
+test('reenabling a weapon restores its ordinary firing schedule', () => {
+  const disabled = advanceWeapons(initialWeaponState(), 1300, origin, targets, ['forward']);
+  const enabled = advanceWeapons(disabled.state, 650, origin, targets, ['forward', 'sides']);
+  assert.equal(enabled.volleys.filter(v => v.weaponId === 'sides').length, 1);
+});
