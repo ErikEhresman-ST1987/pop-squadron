@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import './style.css';
 import { setupOffline } from './offline.js';
 import { MissionRules } from './game/missionRules.js';
-import { getMission } from './game/missionDefinitions.js';
+import { MISSIONS, getMission } from './game/missionDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
@@ -13,7 +13,7 @@ const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
 class FlightScene extends Phaser.Scene {
   constructor() { super('FlightScene'); }
   create() {
-    this.mission = getMission(1); // Mission selection is introduced in Checkpoint 5.2.
+    this.mission = getMission(selectedMissionId); // Selection is captured at mission start.
     this.rules = new MissionRules(this.mission);
     this.elapsed = 0;
     this.waveIndex = 0;
@@ -230,8 +230,29 @@ const returnHangar = document.getElementById('return-hangar');
 const launch = document.getElementById('launch');
 const slotContainer = document.getElementById('loadout-slots');
 const saveStatus = document.getElementById('save-status');
+const missionList = document.getElementById('mission-list');
+let selectedMissionId = 1; // Unlock persistence arrives in Checkpoint 5.3.
 let loadout = readLoadout(window.localStorage);
 let game;
+
+function renderMissions() {
+  missionList.replaceChildren();
+  for (const mission of MISSIONS) {
+    const available = mission.id === 1; // Checkpoint 5.3 will supply unlocked missions.
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'mission-choice';
+    button.disabled = !available;
+    button.setAttribute('aria-pressed', String(available && mission.id === selectedMissionId));
+    button.textContent = mission.name + ' · ' + mission.difficulty + (available ? '' : ' · Locked');
+    if (available) button.addEventListener('click', () => {
+      selectedMissionId = mission.id;
+      renderMissions();
+    });
+    missionList.append(button);
+  }
+  launch.textContent = 'Launch ' + getMission(selectedMissionId).name;
+}
 
 function renderSlots() {
   slotContainer.replaceChildren();
@@ -281,6 +302,7 @@ launch.addEventListener('click', () => {
 });
 returnHangar.addEventListener('click', showHangar);
 renderSlots();
+renderMissions();
 
 function createGame() {
   return new Phaser.Game({
