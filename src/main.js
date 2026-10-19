@@ -255,7 +255,17 @@ class FlightScene extends Phaser.Scene {
     for (let i=this.shots.length-1;i>=0;i--) {
       const shot=this.shots[i];
       shot.lifetime += dt;
-      if (shot.kind === 'tracking') {
+      if (shot.kind === 'tracking' && shot.targetId === 'boss') {
+        if (!this.boss || shot.lifetime > 3) { this.removeShot(i); continue; }
+        const dx = this.boss.shape.x - shot.shape.x;
+        const dy = this.boss.shape.y - shot.shape.y;
+        const distance = Math.hypot(dx, dy);
+        const step = 320 * dt;
+        if (distance > 0) {
+          shot.shape.x += dx / distance * Math.min(step, distance);
+          shot.shape.y += dy / distance * Math.min(step, distance);
+        }
+      } else if (shot.kind === 'tracking') {
         const target = this.balloons.get(shot.targetId);
         if (!target || shot.lifetime > 3) { this.removeShot(i); continue; }
         const dx = target.circle.x - shot.shape.x;
@@ -286,6 +296,12 @@ class FlightScene extends Phaser.Scene {
       if (hit) {
         this.removeShot(i);
         this.damageBalloon(hit);
+      } else if (this.boss &&
+          Math.hypot(shot.shape.x - this.boss.shape.x, shot.shape.y - this.boss.shape.y) <
+          CITY_PARK_BOSS.radius + 7) {
+        this.removeShot(i);
+        this.hitBoss();
+        if (this.finished) return;
       }
     }
     for (const balloon of [...this.balloons.values()]) {
