@@ -136,7 +136,7 @@ class FlightScene extends Phaser.Scene {
     this.updateHud();
   }
   updateHud() {
-    this.hud.setText('HP '+this.rules.health+'   Escapes '+this.rules.escapes+'/'+this.mission.escapeAllowance+'\nPopped '+this.rules.popped+'   Wave '+Math.min(this.waveIndex+1,this.mission.waves.length)+'/'+MISSION.waves.length);
+    this.hud.setText('HP '+this.rules.health+'   Escapes '+this.rules.escapes+'/'+this.mission.escapeAllowance+'\nPopped '+this.rules.popped+'   Wave '+Math.min(this.waveIndex+1,this.mission.waves.length)+'/'+this.mission.waves.length);
   }
   finish(outcome) {
     if (this.finished) return;
@@ -165,8 +165,8 @@ class FlightScene extends Phaser.Scene {
       this.aircraft.x=clamp(this.aircraft.x+h*SPEED*dt/mag,LIMIT,WIDTH-LIMIT);
       this.aircraft.y=clamp(this.aircraft.y+v*SPEED*dt/mag,LIMIT,HEIGHT-LIMIT);
     }
-    while (this.waveIndex<MISSION.waves.length && this.elapsed>=MISSION.waves[this.waveIndex].at) {
-      this.spawnWave(MISSION.waves[this.waveIndex]);
+    while (this.waveIndex<this.mission.waves.length && this.elapsed>=this.mission.waves[this.waveIndex].at) {
+      this.spawnWave(this.mission.waves[this.waveIndex]);
       this.waveIndex++;
       this.updateHud();
     }
@@ -219,7 +219,7 @@ class FlightScene extends Phaser.Scene {
       if (this.elapsed>=this.invulnerableUntil && Math.hypot(balloon.circle.x-this.aircraft.x,balloon.circle.y-this.aircraft.y)<balloon.circle.radius+12) this.resolveBalloon(balloon,'collision');
     }
     if (this.aircraft.alpha<1 && this.elapsed>=this.invulnerableUntil) this.aircraft.alpha=1;
-    const result=this.rules.checkVictory(this.waveIndex===MISSION.waves.length,this.balloons.size);
+    const result=this.rules.checkVictory(this.waveIndex===this.mission.waves.length,this.balloons.size);
     if (result) this.finish(result);
   }
 }
