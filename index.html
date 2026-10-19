@@ -1,11 +1,14 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#102439"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="/pop-squadron/manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="/pop-squadron/icon.svg"><title>Pop Squadron — Hangar</title></head>
-<body><main><header><h1>POP SQUADRON</h1><p>Increment 4 · Hangar</p></header>
+<body><main><header><h1>POP SQUADRON</h1><p>Increment 5 · Hangar</p></header>
 <section id="hangar" aria-labelledby="hangar-title">
   <h2 id="hangar-title">AIRCRAFT HANGAR</h2>
   <div class="hangar-aircraft" aria-hidden="true">✈</div>
   <p class="hangar-help">Configure your three weapon slots before launch.</p>
   <div id="loadout-slots"></div>
+  <h3 class="mission-heading">SELECT MISSION</h3>
+  <div id="mission-list" role="group" aria-label="Available missions"></div>
+  <p class="hangar-note">Mission 2 and 3 unlock through progression in Checkpoint 5.3.</p>
   <p class="hangar-note">Your selected weapons will be active in the next mission.</p>
   <p class="save-status" id="save-status" aria-live="polite"></p>
   <button id="launch" type="button">Launch Mission</button>
