@@ -51,6 +51,31 @@ export const MISSIONS = Object.freeze([
     wave(40500, 'drift', 14, 126, ['layered', 'durable', 'basic', 'layered']),
     wave(55000, 'formation', 15, 132, ['durable', 'layered', 'durable', 'basic']),
     wave(70000, 'drift', 16, 138, ['layered', 'durable', 'layered', 'basic'])
+  ]),
+  // Increment 8.3 — modest rise beyond Mission 6; variation before the City Park boss.
+  mission(7, 'Mission 7: Crosswinds', 'Tactical', [
+    wave(1200, 'drift', 11, 111, ['basic', 'durable', 'layered']),
+    wave(13700, 'formation', 12, 119, ['durable', 'basic', 'layered']),
+    wave(26400, 'drift', 13, 124, ['layered', 'basic', 'durable']),
+    wave(39100, 'formation', 14, 130, ['durable', 'layered', 'basic']),
+    wave(51800, 'drift', 15, 135, ['layered', 'durable', 'basic']),
+    wave(64500, 'formation', 16, 139, ['durable', 'basic', 'layered'])
+  ]),
+  mission(8, 'Mission 8: Balloon Barrage', 'Intense', [
+    wave(1200, 'formation', 11, 116, ['basic', 'durable', 'layered']),
+    wave(12000, 'drift', 12, 124, ['durable', 'layered', 'basic']),
+    wave(22800, 'formation', 13, 130, ['layered', 'basic', 'durable']),
+    wave(33600, 'drift', 14, 136, ['durable', 'layered', 'basic']),
+    wave(44400, 'formation', 15, 140, ['basic', 'layered', 'durable']),
+    wave(55200, 'drift', 16, 144, ['durable', 'layered', 'basic'])
+  ]),
+  mission(9, 'Mission 9: Final Approach', 'Pre-Boss', [
+    wave(1200, 'drift', 12, 119, ['durable', 'basic', 'layered']),
+    wave(12200, 'formation', 13, 127, ['layered', 'durable', 'basic']),
+    wave(23200, 'drift', 14, 134, ['durable', 'layered', 'basic']),
+    wave(34200, 'formation', 15, 139, ['layered', 'durable', 'basic']),
+    wave(45200, 'drift', 16, 143, ['durable', 'layered', 'basic']),
+    wave(56200, 'formation', 17, 147, ['layered', 'durable', 'basic'])
   ])
 ]);
 
