@@ -24,6 +24,7 @@ const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
 class FlightScene extends Phaser.Scene {
   constructor() { super('FlightScene'); }
   preload() {
+    this.load.image('player-jet', import.meta.env.BASE_URL + 'assests/aircraft/Jet-plane.webp');
     // Preserve the existing uploaded asset directory spelling.
     this.load.image('city-park-upload', import.meta.env.BASE_URL +
       'assests/background/D12D1FB4-4F36-428F-B3AC-009D1DC63DF8-background.webp');
@@ -78,14 +79,11 @@ class FlightScene extends Phaser.Scene {
       this.scenery.setTileScale(WIDTH / image.width);
     }
     this.aircraft = this.add.container(WIDTH / 2, HEIGHT * .77).setDepth(4);
-    const hull = this.add.graphics();
-    hull.fillStyle(0x55c7ef).lineStyle(2, 0xe0f7ff);
-    hull.fillTriangle(0, -23, -16, 19, 16, 19);
-    hull.strokeTriangle(0, -23, -16, 19, 16, 19);
-    hull.fillStyle(0x277da5);
-    hull.fillTriangle(-28, 10, -9, -1, -9, 20);
-    hull.fillTriangle(28, 10, 9, -1, 9, 20);
-    this.aircraft.add(hull);
+    // Keep the aircraft container as the movement, weapon and collision anchor.
+    const jet = this.add.image(0, 0, 'player-jet');
+    const jetSource = this.textures.get('player-jet').getSourceImage();
+    jet.setScale(Math.min(56 / jetSource.width, 56 / jetSource.height));
+    this.aircraft.add(jet);
     this.hud = this.add.text(12, 10, '', { fontFamily:'system-ui',fontSize:'15px',color:'#f3f7ff',backgroundColor:'#091522aa',padding:{x:7,y:5} }).setDepth(8);
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
     this.dragPointer = null;

@@ -62,9 +62,26 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     if (request.mode === 'navigate') {
-      // The page must come from the SAME precached build as its JS and CSS.
-      // A network-first HTML response could reference a newer bundle than
-      // the active service worker has cached, breaking offline startup.
+      // An iOS Home Screen app may retain an old controller even after a new
+      // worker activates. Allow an explicit release navigation to use the
+      // requested release's cached HTML, without mixing JS/CSS bundles.
+      const requestedRelease = url.searchParams.get('release');
+      if (requestedRelease) {
+        const names = await caches.keys();
+        for (const name of names.filter(n => n.startsWith('pop-squadron-static-'))) {
+          const candidate = await caches.open(name);
+          const metadata = await candidate.match(SCOPE + 'release.json');
+          if (!metadata) continue;
+          try {
+            const info = await metadata.json();
+            if (typeof info.build === 'string' && info.build.startsWith(requestedRelease)) {
+              const page = await candidate.match(SCOPE + 'index.html');
+              if (page) return page;
+            }
+          } catch { /* Ignore invalid old cache metadata. */ }
+        }
+      }
+      // Normal offline navigation stays pinned to this worker's own bundle.
       const page = await cache.match(SCOPE + 'index.html');
       if (page) return page;
       return fetch(request);
