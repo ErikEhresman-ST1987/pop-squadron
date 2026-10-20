@@ -29,6 +29,8 @@ class FlightScene extends Phaser.Scene {
       'assests/background/D12D1FB4-4F36-428F-B3AC-009D1DC63DF8-background.webp');
     this.load.image('city-park-recreation', import.meta.env.BASE_URL +
       'assests/background/8B351309-5300-454C-8FCB-7B3DB94E5350-background.webp');
+    this.load.image('city-park-lakeside', import.meta.env.BASE_URL +
+      'assests/background/BD8CB5DA-F00C-4ABB-9089-755529C5C2DE-background.webp');
   }
   create() {
     this.mission = getMission(selectedMissionId); // Selection is captured at mission start.
@@ -48,10 +50,11 @@ class FlightScene extends Phaser.Scene {
     this.bossSpawned = false;
     this.nextReinforcementAt = Infinity;
     this.cameras.main.setBackgroundColor('#91bd7b');
-    // Use uploaded artwork for the first two City Park zones; other zones retain generated scenery.
+    // Use uploaded artwork for all three City Park zones; Zoo zones retain generated scenery.
     const theme = sceneryTheme(this.mission.id);
     const customKey = theme === 'park-entrance' ? 'city-park-upload'
-      : theme === 'park-recreation' ? 'city-park-recreation' : null;
+      : theme === 'park-recreation' ? 'city-park-recreation'
+      : theme === 'park-lakeside' ? 'city-park-lakeside' : null;
     const useCustom = customKey && this.textures.exists(customKey);
     const textureKey = useCustom ? customKey : 'scenery-' + theme;
     if (!useCustom && !this.textures.exists(textureKey)) {
