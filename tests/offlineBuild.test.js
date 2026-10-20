@@ -29,12 +29,10 @@ test('installed app reloads on a new controlling worker', async () => {
   assert.match(source, /window\.location\.replace/);
   assert.match(source, /sessionStorage\.setItem/);
 });
-test('new worker refreshes visible legacy clients without clearing saved data', async () => {
+test('worker activation does not navigate active gameplay', async () => {
   const source = await readFile(new URL('../scripts/prepare-offline.mjs', import.meta.url), 'utf8');
-  assert.match(source, /self\.clients\.matchAll/);
-  assert.match(source, /client\.visibilityState !== 'visible'/);
-  assert.match(source, /client\.navigate\(client\.url\)/);
-  assert.doesNotMatch(source, /localStorage\.clear|caches\.delete/);
+  assert.ok(source.includes('self.clients.claim()'));
+  assert.ok(!source.includes('client.navigate('));
 });
 
 test('release probe bypasses service worker cache and reports worker build identity', async () => {
@@ -59,4 +57,13 @@ test('manual update retry is not blocked by a previous automatic refresh attempt
   assert.match(source, /searchParams\.set\('release'/);
   assert.match(source, /window\.location\.replace\(url\.href\)/);
   assert.match(source, /sessionStorage\.removeItem\(refreshKey\)/);
+});
+
+test('pending refresh waits for the hangar', async () => {
+  const offline = await readFile(new URL('../src/offline.js', import.meta.url), 'utf8');
+  const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.ok(offline.includes('pendingRefresh = { version, manual }'));
+  assert.ok(offline.includes('if (missionActive())'));
+  assert.ok(offline.includes('applyPendingRefresh'));
+  assert.ok(main.includes('pop-squadron-hangar'));
 });
