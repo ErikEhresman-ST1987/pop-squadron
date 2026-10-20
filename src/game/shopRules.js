@@ -1,10 +1,8 @@
+import { WEAPON_REGISTRY } from './weaponRegistry.js';
 import { readWallet, saveWallet } from './walletRules.js';
 import { readOwnership, saveOwnership } from './ownershipRules.js';
 
-export const SHOP_WEAPONS = Object.freeze([
-  Object.freeze({ id: 'sides', name: 'Twin Side Guns', price: 500 }),
-  Object.freeze({ id: 'tracking', name: 'Tracking Launcher', price: 1000 })
-]);
+export const SHOP_WEAPONS = Object.freeze(WEAPON_REGISTRY.filter(weapon => weapon.price > 0));
 
 export function purchaseWeapon(storage, weaponId) {
   const weapon = SHOP_WEAPONS.find(item => item.id === weaponId);
