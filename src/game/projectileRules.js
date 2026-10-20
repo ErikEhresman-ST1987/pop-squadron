@@ -2,7 +2,10 @@
 const PATTERNS = Object.freeze({
   center: Object.freeze([0]),
   wings: Object.freeze([-24, 24]),
-  burst: Object.freeze([-9, 0, 9])
+  burst: Object.freeze([-9, 0, 9]),
+  wide: Object.freeze([-24, 0, 24]),
+  rear: Object.freeze([-24, 24]),
+  turrets: Object.freeze([-24, 24])
 });
 
 export function projectileSpecs(weapon, origin, targetId = null) {
@@ -12,11 +15,13 @@ export function projectileSpecs(weapon, origin, targetId = null) {
   const offsets = PATTERNS[weapon.projectilePattern];
   if (!offsets || offsets.length !== weapon.projectiles)
     throw new RangeError('Unsupported projectile pattern/count');
-  return offsets.map(offset => Object.freeze({
+  return offsets.map((offset, index) => Object.freeze({
     kind, x: origin.x + offset, y: origin.y + (kind === 'tracking' ? -18 : -25),
     targetId: kind === 'tracking' ? targetId : null,
     speed: weapon.projectileSpeed, damage: weapon.damage, piercing: weapon.piercing === true,
-    vx: 0, vy: -1, color: weapon.projectileColor,
+    splashRadius: weapon.splashRadius ?? 0,
+    vx: weapon.projectilePattern === 'wide' ? (index - 1) * 0.42 : 0,
+    vy: weapon.projectilePattern === 'rear' ? 1 : -1, color: weapon.projectileColor,
     width: weapon.projectileWidth, height: weapon.projectileHeight,
     radius: weapon.projectileRadius
   }));
