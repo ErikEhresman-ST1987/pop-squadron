@@ -9,7 +9,7 @@ export function normalizeProgress(value) {
   const highest = value && typeof value === 'object' && !Array.isArray(value)
     ? value.highestUnlocked : null;
   return {
-    highestUnlocked: Number.isInteger(highest) && highest >= 1 && highest <= MISSIONS.length
+    highestUnlocked: Number.isSafeInteger(highest) && highest >= 1 && Number.isSafeInteger(highest)
       ? highest : 1
   };
 }
