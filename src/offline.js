@@ -11,6 +11,9 @@ export async function setupOffline() {
   show(navigator.onLine ? 'Preparing offline play…' : 'Offline · Checking cached game');
   try {
     const registration = await navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js', { scope: import.meta.env.BASE_URL });
+    // Check for updates on each online launch; iOS may keep a standalone
+    // web app alive with a previously activated service worker.
+    if (navigator.onLine) registration.update().catch(error => console.warn('Offline update check:', error));
     const worker = registration.installing || registration.waiting || registration.active;
     if (worker?.state === 'activated') show('Offline game cache available');
     else if (worker) worker.addEventListener('statechange', () => {
