@@ -38,3 +38,12 @@
 #mission-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 #mission-list .mission-choice{min-height:60px;padding:7px 3px;text-align:center;font-size:11px;line-height:1.35;overflow-wrap:anywhere}
 #launch:disabled{opacity:.6;cursor:not-allowed}
+
+/* Increment 9.1: expandable weapon categories */
+.weapon-category{border:1px solid #52718a;border-radius:10px;background:#192f43;padding:8px;display:flex;flex-direction:column;gap:8px}
+.weapon-category-toggle{width:100%;min-height:48px;text-align:left;border:0;border-radius:7px;padding:10px;background:#28445d;color:#f3f7ff;font-size:14px;font-weight:700}
+.weapon-category-toggle[aria-expanded="true"]{background:#36566e}
+.weapon-group-heading{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#b9d7e8;margin:9px 3px 0}
+.weapon-category .weapon-slot{padding:9px;min-width:0}
+.weapon-category .weapon-slot>div{min-width:0;flex:1}
+.weapon-category .equipment-toggle{min-width:90px}
