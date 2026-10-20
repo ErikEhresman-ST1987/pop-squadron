@@ -44,6 +44,13 @@ self.addEventListener('activate', event => {
     // be running an older build and need its hashed JavaScript/CSS assets.
     // A later maintenance release can prune caches after clients have closed.
     await self.clients.claim();
+    // Refresh visible legacy installed clients that lack controllerchange support.
+    // No saved-game data or old asset caches are deleted.
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: false });
+    for (const client of clients) {
+      if (client.visibilityState !== 'visible' || !client.url.startsWith(self.location.origin + SCOPE)) continue;
+      try { await client.navigate(client.url); } catch { /* Client may have closed. */ }
+    }
   })());
 });
 self.addEventListener('fetch', event => {
