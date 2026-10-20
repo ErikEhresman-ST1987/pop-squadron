@@ -26,7 +26,7 @@ test('offline precache includes HTML and compiled assets and preserves older ver
 test('installed app reloads on a new controlling worker', async () => {
   const source = await readFile(new URL('../src/offline.js', import.meta.url), 'utf8');
   assert.match(source, /controllerchange/);
-  assert.match(source, /window\.location\.reload/);
+  assert.match(source, /window\.location\.replace/);
   assert.match(source, /sessionStorage\.setItem/);
 });
 test('new worker refreshes visible legacy clients without clearing saved data', async () => {
