@@ -18,9 +18,10 @@ test('boss mission has three opening waves and five escapes', () => {
   assert.equal(m.escapeAllowance, 5);
   assert.ok(CITY_PARK_BOSS.enterAfterMs > m.waves.at(-1).at);
 });
-test('first boss victory pays more than replay and does not invent Mission 11', () => {
+test('first boss victory pays more than replay and unlocks authored Zoo Mission 11', () => {
   assert.ok(bossReward(true) > bossReward(false));
-  assert.deepEqual(completeMission({ highestUnlocked: 10 }, 10, 'victory'), { highestUnlocked: 10 });
+  assert.deepEqual(completeMission({ highestUnlocked: 10 }, 10, 'victory'), { highestUnlocked: 11 });
+  assert.equal(getMission(11)?.name, 'Mission 11: Zoo Entrance');
 });
 
 test('boss dive locks its target and returns to patrol height', () => {
