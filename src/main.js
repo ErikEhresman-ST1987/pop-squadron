@@ -6,6 +6,8 @@ import { getMission } from './game/missionDefinitions.js';
 import { SECTORS, getSector, getSectorForMission } from './game/sectorDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
+import { projectileSpecs, moveProjectile } from './game/projectileRules.js';
+import { getWeapon } from './game/weaponRegistry.js';
 import { WEAPON_CATEGORIES, WEAPON_GROUPS, weaponsIn } from './game/weaponRegistry.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
 import { readOwnership } from './game/ownershipRules.js';
@@ -102,9 +104,9 @@ class FlightScene extends Phaser.Scene {
       { fontFamily: 'system-ui', fontSize: '15px', color: '#fff0c9' }).setOrigin(.5).setDepth(9);
     this.bossBar = this.add.rectangle(WIDTH / 2, 55, 250, 12, 0x6de2a6).setDepth(9);
   }
-  hitBoss() {
+  hitBoss(damage = 1) {
     if (!this.boss) return;
-    this.boss.health = bossHit(this.boss.health);
+    this.boss.health = bossHit(this.boss.health, damage);
     this.bossBar.width = 250 * this.boss.health / CITY_PARK_BOSS.health;
     if (bossPhase(this.boss.health) === 'reinforcements' &&
         !Number.isFinite(this.nextReinforcementAt))
@@ -125,8 +127,8 @@ class FlightScene extends Phaser.Scene {
     if (type === 'durable') return [0xf9be63, 0xe89848, 0xc66b42][removed];
     return 0xff779a;
   }
-  damageBalloon(balloon) {
-    const result = hitBalloon(balloon.state);
+  damageBalloon(balloon, damage = 1) {
+    const result = hitBalloon(balloon.state, damage);
     if (result.event === 'ignored') return;
     balloon.state = result.state;
     if (result.event === 'pop') {
@@ -141,19 +143,15 @@ class FlightScene extends Phaser.Scene {
     // The same balloon object keeps its position, movement pattern and identity.
   }
   fireVolley(volley) {
-    if (volley.weaponId === 'tracking') {
-      const target = volley.targetId === 'boss' ? this.boss : this.balloons.get(volley.targetId);
-      if (!target) return;
-      const shape = this.add.circle(this.aircraft.x, this.aircraft.y - 18, 5, 0xb69cff).setDepth(3);
-      this.shots.push({ shape, kind: 'tracking', targetId: volley.targetId, lifetime: 0 });
-      return;
-    }
-    const offsets = volley.weaponId === 'sides' ? [-24, 24] : [0];
-    for (const offset of offsets) {
-      const shape = this.add.rectangle(this.aircraft.x + offset, this.aircraft.y - 25,
-        volley.weaponId === 'sides' ? 4 : 4, volley.weaponId === 'sides' ? 12 : 15,
-        volley.weaponId === 'sides' ? 0xffc979 : 0xb3f7ff).setDepth(3);
-      this.shots.push({ shape, kind: 'straight', lifetime: 0 });
+    const weapon = getWeapon(volley.weaponId);
+    if (!weapon) return;
+    const specs = projectileSpecs(weapon, { x: this.aircraft.x, y: this.aircraft.y }, volley.targetId);
+    for (const spec of specs) {
+      const shape = spec.kind === 'tracking'
+        ? this.add.circle(spec.x, spec.y, spec.radius, spec.color).setDepth(3)
+        : this.add.rectangle(spec.x, spec.y, spec.width, spec.height, spec.color).setDepth(3);
+      this.shots.push({ shape, kind: spec.kind, targetId: spec.targetId,
+        speed: spec.speed, damage: spec.damage, vx: spec.vx, vy: spec.vy, lifetime: 0 });
     }
   }
   removeShot(index) {
@@ -287,7 +285,7 @@ class FlightScene extends Phaser.Scene {
         const dx = this.boss.shape.x - shot.shape.x;
         const dy = this.boss.shape.y - shot.shape.y;
         const distance = Math.hypot(dx, dy);
-        const step = 320 * dt;
+        const step = shot.speed * dt;
         if (distance > 0) {
           shot.shape.x += dx / distance * Math.min(step, distance);
           shot.shape.y += dy / distance * Math.min(step, distance);
@@ -304,7 +302,9 @@ class FlightScene extends Phaser.Scene {
           shot.shape.y += dy / distance * Math.min(step, distance);
         }
       } else {
-        shot.shape.y -= 440 * dt;
+        const moved = moveProjectile(shot.shape, shot, dt);
+        shot.shape.x = moved.x;
+        shot.shape.y = moved.y;
       }
       if (shot.shape.y < -20 || shot.shape.y > HEIGHT+20 || shot.shape.x < -20 || shot.shape.x > WIDTH+20) {
         this.removeShot(i); continue;
@@ -322,12 +322,12 @@ class FlightScene extends Phaser.Scene {
       }
       if (hit) {
         this.removeShot(i);
-        this.damageBalloon(hit);
+        this.damageBalloon(hit, shot.damage);
       } else if (this.boss &&
           Math.hypot(shot.shape.x - this.boss.shape.x, shot.shape.y - this.boss.shape.y) <
           CITY_PARK_BOSS.radius + 7) {
         this.removeShot(i);
-        this.hitBoss();
+        this.hitBoss(shot.damage);
         if (this.finished) return;
       }
     }
