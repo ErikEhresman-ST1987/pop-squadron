@@ -151,7 +151,7 @@ class FlightScene extends Phaser.Scene {
         ? this.add.circle(spec.x, spec.y, spec.radius, spec.color).setDepth(3)
         : this.add.rectangle(spec.x, spec.y, spec.width, spec.height, spec.color).setDepth(3);
       this.shots.push({ shape, kind: spec.kind, targetId: spec.targetId,
-        speed: spec.speed, damage: spec.damage, piercing: spec.piercing, hitIds: new Set(), vx: spec.vx, vy: spec.vy, lifetime: 0 });
+        speed: spec.speed, damage: spec.damage, piercing: spec.piercing, splashRadius: spec.splashRadius, hitIds: new Set(), vx: spec.vx, vy: spec.vy, lifetime: 0 });
     }
   }
   removeShot(index) {
@@ -314,6 +314,7 @@ class FlightScene extends Phaser.Scene {
         ? [this.balloons.get(shot.targetId)].filter(Boolean)
         : this.balloons.values();
       for (const balloon of candidates) {
+        if (shot.hitIds.has(balloon.id)) continue;
         const tolerance = shot.kind === 'tracking' ? 5 : 2;
         if (Math.abs(shot.shape.x-balloon.circle.x)<balloon.circle.radius+tolerance &&
             Math.abs(shot.shape.y-balloon.circle.y)<balloon.circle.radius+(shot.kind === 'tracking' ? 5 : 7)) {
@@ -321,12 +322,20 @@ class FlightScene extends Phaser.Scene {
         }
       }
       if (hit) {
-        this.removeShot(i);
+        shot.hitIds.add(hit.id);
+        const blast = shot.splashRadius > 0
+          ? [...this.balloons.values()].filter(b => b.id !== hit.id &&
+              Math.hypot(b.circle.x - hit.circle.x, b.circle.y - hit.circle.y) <= shot.splashRadius)
+          : [];
+        if (!shot.piercing) this.removeShot(i);
         this.damageBalloon(hit, shot.damage);
-      } else if (this.boss &&
+        for (const nearby of blast) if (this.balloons.has(nearby.id)) this.damageBalloon(nearby, shot.damage);
+        if (this.finished) return;
+      } else if (this.boss && !shot.hitIds.has('boss') &&
           Math.hypot(shot.shape.x - this.boss.shape.x, shot.shape.y - this.boss.shape.y) <
           CITY_PARK_BOSS.radius + 7) {
-        this.removeShot(i);
+        shot.hitIds.add('boss');
+        if (!shot.piercing) this.removeShot(i);
         this.hitBoss(shot.damage);
         if (this.finished) return;
       }
