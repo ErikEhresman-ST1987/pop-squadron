@@ -1,10 +1,7 @@
 // Renderer-independent weapon definitions, cooldowns, and targeting.
-export const WEAPONS = Object.freeze({
-  forward: Object.freeze({ id: 'forward', slot: 'primary', intervalMs: 240, projectiles: 1, targeting: 'straight' }),
-  sides: Object.freeze({ id: 'sides', slot: 'secondary-1', intervalMs: 650, projectiles: 2, targeting: 'straight' }),
-  tracking: Object.freeze({ id: 'tracking', slot: 'secondary-2', intervalMs: 1500, projectiles: 1, targeting: 'nearest', range: 220 })
-});
-export const WEAPON_ORDER = Object.freeze(['forward', 'sides', 'tracking']);
+import { WEAPON_REGISTRY } from './weaponRegistry.js';
+export const WEAPONS = Object.freeze(Object.fromEntries(WEAPON_REGISTRY.map(weapon => [weapon.id, weapon])));
+export const WEAPON_ORDER = Object.freeze(WEAPON_REGISTRY.map(weapon => weapon.id));
 
 export function initialWeaponState() {
   return Object.freeze(Object.fromEntries(WEAPON_ORDER.map(id => [id, 0])));
