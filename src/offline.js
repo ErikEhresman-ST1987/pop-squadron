@@ -14,6 +14,18 @@ export async function setupOffline() {
     // Check for updates on each online launch; iOS may keep a standalone
     // web app alive with a previously activated service worker.
     if (navigator.onLine) registration.update().catch(error => console.warn('Offline update check:', error));
+    // Reload on a new controller to use one coherent offline build.
+    const originalController = navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!originalController || !navigator.onLine) return;
+      try {
+        const key = 'pop-squadron-worker-refresh';
+        const script = navigator.serviceWorker.controller?.scriptURL ?? '';
+        if (sessionStorage.getItem(key) === script) return;
+        sessionStorage.setItem(key, script);
+      } catch { /* Storage may be unavailable. */ }
+      window.location.reload();
+    });
     const worker = registration.installing || registration.waiting || registration.active;
     if (worker?.state === 'activated') show('Offline game cache available');
     else if (worker) worker.addEventListener('statechange', () => {
