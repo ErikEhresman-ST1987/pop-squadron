@@ -1,12 +1,12 @@
+import { WEAPON_CATEGORIES, getWeapon } from './weaponRegistry.js';
 import { WEAPONS } from './weaponRules.js';
 import { STARTING_WEAPONS } from './ownershipRules.js';
 
 export const LOADOUT_KEY = 'pop-squadron-loadout-v1';
-export const SLOTS = Object.freeze([
-  Object.freeze({ id: 'primary', label: 'Primary', weaponId: 'forward', name: 'Forward Cannon' }),
-  Object.freeze({ id: 'secondary-1', label: 'Secondary 1', weaponId: 'sides', name: 'Twin Side Guns' }),
-  Object.freeze({ id: 'secondary-2', label: 'Secondary 2', weaponId: 'tracking', name: 'Tracking Launcher' })
-]);
+export const SLOTS = Object.freeze(WEAPON_CATEGORIES.map(category => Object.freeze({
+  ...category, weaponId: { primary: 'forward', 'secondary-1': 'sides', 'secondary-2': 'tracking' }[category.id],
+  name: getWeapon({ primary: 'forward', 'secondary-1': 'sides', 'secondary-2': 'tracking' }[category.id]).name
+})));
 
 export function defaultLoadout() {
   return Object.fromEntries(SLOTS.map(slot => [slot.id, STARTING_WEAPONS.includes(slot.weaponId) ? slot.weaponId : null]));
@@ -17,7 +17,7 @@ export function normalizeLoadout(value, ownedWeapons = STARTING_WEAPONS) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return result;
   for (const slot of SLOTS) {
     const selected = value[slot.id];
-    if (selected === null || (selected === slot.weaponId && ownedWeapons.includes(selected) && WEAPONS[selected]?.slot === slot.id)) {
+    if (selected === null || (ownedWeapons.includes(selected) && WEAPONS[selected]?.slot === slot.id)) {
       result[slot.id] = selected;
     }
   }
