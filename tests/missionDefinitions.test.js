@@ -4,11 +4,12 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('ten ordered authored missions with stable lookup', () => {
+test('eleven ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
-    [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss'], [10, 'Boss']
+    [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss'], [10, 'Boss'],
+    [11, 'Moderate']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -76,4 +77,13 @@ test('Missions 7–9 have five escapes, supported waves and a modest pressure in
   assert.ok(eight.waves[1].at - eight.waves[0].at < seven.waves[1].at - seven.waves[0].at);
   assert.ok(nine.waves.at(-1).speed > eight.waves.at(-1).speed);
   for (const m of [seven, eight, nine]) assert.equal(m.escapeAllowance, 5);
+});
+
+test('Zoo opening mission is playable and preserves the established combat rules', () => {
+  const zoo = getMission(11);
+  assert.equal(zoo.name, 'Mission 11: Zoo Entrance');
+  assert.deepEqual([zoo.health, zoo.collisionDamage, zoo.escapeAllowance], [100, 20, 5]);
+  assert.equal(zoo.waves.length, 5);
+  assert.ok(zoo.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
+  assert.equal(getMission(12), null);
 });
