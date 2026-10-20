@@ -551,7 +551,10 @@ function renderShop() {
             if (ownedWeapons.includes(weapon.id) || locked || weapon.price === 0 || walletBalance < weapon.price) return;
             pendingPurchase = weapon.id;
             purchaseDetails.textContent = 'Purchase ' + weapon.name + ' for $' + weapon.price + '? It will remain yours permanently. Equip it separately.';
+            row.after(confirmation);
             confirmation.hidden = false;
+            document.getElementById('confirm-purchase').focus({ preventScroll: true });
+            confirmation.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
           });
           row.append(details, button);
           section.append(row);
