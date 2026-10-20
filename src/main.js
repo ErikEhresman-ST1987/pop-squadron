@@ -263,11 +263,11 @@ class FlightScene extends Phaser.Scene {
       if (this.elapsed >= this.invulnerableUntil &&
           Math.hypot(this.boss.shape.x - this.aircraft.x, this.boss.shape.y - this.aircraft.y) <
           CITY_PARK_BOSS.radius + 12) {
-        this.rules.health = Math.max(0, this.rules.health - this.mission.collisionDamage);
+        this.rules.damageAircraft();
         this.invulnerableUntil = this.elapsed + 750;
         this.aircraft.alpha = .5;
         this.updateHud();
-        if (this.rules.health === 0) { this.finish('defeat'); return; }
+        if (this.rules.outcome) { this.finish(this.rules.outcome); return; }
       }
     }
     const firing = advanceWeapons(this.weaponState, delta,
@@ -330,6 +330,7 @@ class FlightScene extends Phaser.Scene {
         if (!shot.piercing) this.removeShot(i);
         this.damageBalloon(hit, shot.damage);
         for (const nearby of blast) if (this.balloons.has(nearby.id)) this.damageBalloon(nearby, shot.damage);
+        if (this.rules.outcome) { this.finish(this.rules.outcome); return; }
         if (this.finished) return;
       } else if (this.boss && !shot.hitIds.has('boss') &&
           Math.hypot(shot.shape.x - this.boss.shape.x, shot.shape.y - this.boss.shape.y) <
@@ -344,8 +345,15 @@ class FlightScene extends Phaser.Scene {
       balloon.age+=dt;
       balloon.circle.y+=balloon.speed*balloonAppearance(balloon.state).speedMultiplier*dt;
       if (balloon.pattern==='drift') balloon.circle.x=clamp(balloon.originX+Math.sin(balloon.age*2+balloon.phase)*34,15,WIDTH-15);
-      if (balloon.circle.y>HEIGHT+balloon.circle.radius) {this.resolveBalloon(balloon,'escape');continue;}
-      if (this.elapsed>=this.invulnerableUntil && Math.hypot(balloon.circle.x-this.aircraft.x,balloon.circle.y-this.aircraft.y)<balloon.circle.radius+12) this.resolveBalloon(balloon,'collision');
+      if (balloon.circle.y>HEIGHT+balloon.circle.radius) {
+        this.resolveBalloon(balloon,'escape');
+        if (this.rules.outcome) { this.finish(this.rules.outcome); return; }
+        continue;
+      }
+      if (this.elapsed>=this.invulnerableUntil && Math.hypot(balloon.circle.x-this.aircraft.x,balloon.circle.y-this.aircraft.y)<balloon.circle.radius+12) {
+        this.resolveBalloon(balloon,'collision');
+        if (this.rules.outcome) { this.finish(this.rules.outcome); return; }
+      }
     }
     if (this.aircraft.alpha<1 && this.elapsed>=this.invulnerableUntil) this.aircraft.alpha=1;
     const result = this.mission.id === 10 ? this.rules.outcome :
