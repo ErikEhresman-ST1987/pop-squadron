@@ -71,5 +71,23 @@ test('defeating City Park boss unlocks Zoo Mission 11 and preserves saved progre
   const api = { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) };
   assert.equal(saveProgress(api, zoo), true);
   assert.deepEqual(readProgress(api), zoo);
-  assert.deepEqual(completeMission(zoo, 11, 'victory'), zoo);
+  assert.deepEqual(completeMission(zoo, 11, 'victory'), { highestUnlocked: 12 });
+});
+
+test('Zoo missions 11–13 unlock sequentially and replay cannot skip ahead', () => {
+  const eleven = { highestUnlocked: 11 };
+  const twelve = completeMission(eleven, 11, 'victory');
+  assert.deepEqual(twelve, { highestUnlocked: 12 });
+  assert.equal(isMissionUnlocked(twelve, 13), false);
+  assert.deepEqual(completeMission(twelve, 11, 'victory'), twelve);
+  assert.deepEqual(completeMission(twelve, 12, 'defeat'), twelve);
+  const thirteen = completeMission(twelve, 12, 'victory');
+  assert.deepEqual(thirteen, { highestUnlocked: 13 });
+  assert.equal(isMissionUnlocked(thirteen, 13), true);
+  assert.equal(isMissionUnlocked(thirteen, 14), false);
+  assert.deepEqual(completeMission(thirteen, 13, 'victory'), thirteen);
+  const storage = new Map();
+  const api = { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) };
+  assert.equal(saveProgress(api, thirteen), true);
+  assert.deepEqual(readProgress(api), thirteen);
 });
