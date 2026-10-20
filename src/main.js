@@ -15,7 +15,7 @@ import { SHOP_WEAPONS, purchaseWeapon } from './game/shopRules.js';
 import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 import { rewardForBalloon, addReward } from './game/currencyRules.js';
 import { readWallet, creditWallet } from './game/walletRules.js';
-import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval } from './game/bossRules.js';
+import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval, zooAttackTiming, zooAttackPosition } from './game/bossRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -257,9 +257,43 @@ class FlightScene extends Phaser.Scene {
     if (this.boss) {
       this.boss.age += dt;
       if (this.mission.id === 20) {
-        const position = zooBossPosition(this.boss.age * 1000, this.boss.health);
+        const phase = zooBossPhase(this.boss.health);
+        if (!this.boss.zooAttack) {
+          const timing = zooAttackTiming(phase);
+          const initial = zooBossPosition(this.boss.age * 1000, this.boss.health);
+          this.boss.zooAttack = { startedAt: this.elapsed, bossAgeMs: this.boss.age * 1000,
+            health: this.boss.health, timing, startX: initial.x, startY: initial.y,
+            targetX: initial.x, targetY: initial.y, returnX: initial.x, returnY: initial.y,
+            locked: false };
+        }
+        let attack = this.boss.zooAttack;
+        const duration = attack.timing.patrolMs + attack.timing.warningMs +
+          attack.timing.chargeMs + attack.timing.retreatMs;
+        if (this.elapsed - attack.startedAt >= duration) {
+          const timing = zooAttackTiming(phase);
+          attack = this.boss.zooAttack = { startedAt: this.elapsed, bossAgeMs: this.boss.age * 1000,
+            health: this.boss.health, timing, startX: this.boss.shape.x, startY: this.boss.shape.y,
+            targetX: this.boss.shape.x, targetY: this.boss.shape.y,
+            returnX: this.boss.shape.x, returnY: 130, locked: false };
+        }
+        const attackAge = this.elapsed - attack.startedAt;
+        if (!attack.locked && attackAge >= attack.timing.patrolMs) {
+          // Lock the aircraft position once; the charge never homes after warning.
+          attack.startX = this.boss.shape.x;
+          attack.startY = this.boss.shape.y;
+          attack.targetX = this.aircraft.x;
+          attack.targetY = this.aircraft.y;
+          attack.returnX = clamp(attack.startX, 55, 305);
+          attack.returnY = 130;
+          attack.locked = true;
+        }
+        const position = zooAttackPosition(attackAge, attack);
         this.boss.shape.setPosition(position.x, position.y);
-        this.bossWarning.setVisible(false);
+        this.bossWarning.setVisible(position.action === 'warning');
+        if (position.action === 'warning') {
+          this.bossWarning.setText('CHARGE INCOMING!');
+          this.bossWarning.setPosition(clamp(attack.targetX, 90, WIDTH - 90), clamp(attack.targetY - 65, 245, HEIGHT - 45));
+        }
         if (this.elapsed >= this.nextReinforcementAt) {
           this.spawnWave({ count: 3, pattern: 'drift', speed: position.phase === 'last-gasp' ? 150 : 130, types: ZOO_BOSS.reinforcementTypes });
           this.nextReinforcementAt = this.elapsed + zooEscortInterval(position.phase);
