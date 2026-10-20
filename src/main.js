@@ -12,7 +12,7 @@ import { SHOP_WEAPONS, purchaseWeapon } from './game/shopRules.js';
 import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 import { rewardForBalloon, addReward } from './game/currencyRules.js';
 import { readWallet, creditWallet } from './game/walletRules.js';
-import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward } from './game/bossRules.js';
+import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward, bossAttackPosition } from './game/bossRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -95,7 +95,8 @@ class FlightScene extends Phaser.Scene {
     this.bossSpawned = true;
     const shape = this.add.circle(WIDTH / 2, 105, CITY_PARK_BOSS.radius, 0xf27ab9)
       .setStrokeStyle(5, 0xffe59b).setDepth(3);
-    this.boss = { shape, health: CITY_PARK_BOSS.health, age: 0 };
+    this.boss = { shape, health: CITY_PARK_BOSS.health, age: 0, attack: { startX: WIDTH / 2, targetX: WIDTH / 2 }, lastPhase: 'patrol' };
+    this.bossWarning = this.add.text(WIDTH / 2, 190, 'DIVE INCOMING!', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#ffdd76' }).setOrigin(.5).setDepth(9).setVisible(false);
     this.bossLabel = this.add.text(WIDTH / 2, 35, 'GIANT PARTY BALLOON',
       { fontFamily: 'system-ui', fontSize: '15px', color: '#fff0c9' }).setOrigin(.5).setDepth(9);
     this.bossBar = this.add.rectangle(WIDTH / 2, 55, 250, 12, 0x6de2a6).setDepth(9);
@@ -111,6 +112,7 @@ class FlightScene extends Phaser.Scene {
       this.boss.shape.destroy();
       this.bossBar.destroy();
       this.bossLabel.destroy();
+      this.bossWarning.destroy();
       this.boss = null;
       for (const balloon of this.balloons.values()) balloon.circle.destroy();
       this.balloons.clear();
@@ -238,8 +240,22 @@ class FlightScene extends Phaser.Scene {
         this.elapsed >= CITY_PARK_BOSS.enterAfterMs) this.spawnBoss();
     if (this.boss) {
       this.boss.age += dt;
-      this.boss.shape.x = WIDTH / 2 + Math.sin(this.boss.age * 1.35) * 112;
-      this.boss.shape.y = 105 + Math.sin(this.boss.age * 1.9) * 24;
+      const cycle = CITY_PARK_BOSS.patrolMs + CITY_PARK_BOSS.warningMs +
+        CITY_PARK_BOSS.diveMs + CITY_PARK_BOSS.retreatMs;
+      const phaseTime = (this.boss.age * 1000) % cycle;
+      const phase = phaseTime < CITY_PARK_BOSS.patrolMs ? 'patrol' :
+        phaseTime < CITY_PARK_BOSS.patrolMs + CITY_PARK_BOSS.warningMs ? 'warning' :
+        phaseTime < CITY_PARK_BOSS.patrolMs + CITY_PARK_BOSS.warningMs + CITY_PARK_BOSS.diveMs ? 'dive' : 'retreat';
+      if (phase === 'warning' && this.boss.lastPhase !== 'warning') {
+        this.boss.attack = { startX: this.boss.shape.x, targetX: this.aircraft.x };
+      }
+      this.boss.lastPhase = phase;
+      const position = bossAttackPosition(this.boss.age * 1000, this.aircraft.x, this.boss.attack);
+      this.boss.shape.x = position.x;
+      this.boss.shape.y = position.y;
+      this.bossWarning.setVisible(phase === 'warning');
+      if (phase === 'warning') this.bossWarning.setX(this.boss.attack.targetX);
+
       if (this.elapsed >= this.nextReinforcementAt) {
         this.spawnWave({ count: 3, pattern: 'drift', speed: 113,
           types: CITY_PARK_BOSS.reinforcementTypes });
