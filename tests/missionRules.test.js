@@ -34,3 +34,26 @@ test('victory requires all waves spawned and no active balloons', () => {
   assert.equal(rules.checkVictory(true,0),'victory');
   assert.equal(rules.resolve(3,'escape'),false);
 });
+
+test('boss contact uses ordinary aircraft damage without resolving balloon identities', () => {
+  const rules = new MissionRules();
+  for (let i = 0; i < 4; i++) assert.equal(rules.damageAircraft(), true);
+  assert.equal(rules.health, 20);
+  assert.equal(rules.escapes, 0);
+  assert.equal(rules.popped, 0);
+  assert.equal(rules.resolved.size, 0);
+  assert.equal(rules.damageAircraft(), true);
+  assert.equal(rules.health, 0);
+  assert.equal(rules.outcome, 'defeat');
+  assert.equal(rules.damageAircraft(), false);
+  assert.equal(rules.resolve(123, 'pop'), false);
+});
+
+test('sixth escape immediately freezes resolution and prevents extra payouts', () => {
+  const rules = new MissionRules();
+  for (let i = 0; i < 6; i++) assert.equal(rules.resolve(i, 'escape'), true);
+  assert.equal(rules.outcome, 'defeat');
+  assert.equal(rules.resolve(6, 'pop'), false);
+  assert.equal(rules.popped, 0);
+  assert.equal(rules.escapes, 6);
+});
