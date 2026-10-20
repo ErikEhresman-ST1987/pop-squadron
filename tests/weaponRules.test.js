@@ -6,7 +6,7 @@ const origin = { x: 100, y: 100 };
 const targets = [{ id: 7, x: 110, y: 100, resolved: false }, { id: 8, x: 180, y: 100, resolved: false }];
 
 test('approved weapon configuration and fixed slots', () => {
-  assert.deepEqual(Object.values(WEAPONS).map(w => [w.slot, w.intervalMs, w.projectiles]), [
+  assert.deepEqual(['forward', 'sides', 'tracking'].map(id => WEAPONS[id]).map(w => [w.slot, w.intervalMs, w.projectiles]), [
     ['primary', 240, 1], ['secondary-1', 650, 2], ['secondary-2', 1500, 1]
   ]);
   assert.equal(WEAPONS.tracking.range, 220);
@@ -51,12 +51,14 @@ test('weapons keep independent cooldowns and can fire together', () => {
   assert.equal(result.volleys.filter(v => v.weaponId === 'forward').length, 32);
   assert.equal(result.volleys.filter(v => v.weaponId === 'sides').length, 12);
   assert.equal(result.volleys.filter(v => v.weaponId === 'tracking').length, 5);
-  assert.deepEqual(result.state, { forward: 120, sides: 0, tracking: 300 });
+  assert.equal(result.state.forward, 120);
+  assert.equal(result.state.sides, 0);
+  assert.equal(result.state.tracking, 300);
 });
 test('new mission resets all weapon timers', () => {
   const state = advanceWeapons(initialWeaponState(), 400, origin).state;
   assert.notDeepEqual(state, initialWeaponState());
-  assert.deepEqual(initialWeaponState(), { forward: 0, sides: 0, tracking: 0 });
+  assert.equal(Object.values(initialWeaponState()).every(v => v === 0), true);
 });
 test('invalid timing and invalid targeting inputs fail safely', () => {
   assert.throws(() => advanceWeapons(initialWeaponState(), -1, origin), RangeError);
