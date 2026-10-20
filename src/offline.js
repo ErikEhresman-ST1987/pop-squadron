@@ -63,7 +63,7 @@ export async function checkForUpdates(manual = false) {
     } else if (navigator.serviceWorker.controller) {
       // update() may already have activated the new worker.
       const activeBuild = await readWorkerBuild(navigator.serviceWorker.controller);
-      if (activeBuild === latest) refreshFor(latest, userRequested);
+      if (activeBuild === latest) refreshFor(latest, manual);
       else show('New version found · Retry Check for Updates shortly');
     } else show('Update installing · Reopen when complete');
   } catch (error) {
