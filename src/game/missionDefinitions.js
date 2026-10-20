@@ -132,6 +132,35 @@ export const MISSIONS = Object.freeze([
     wave(36400, 'drift', 17, 153, ['basic','layered','durable']),
     wave(45200, 'formation', 18, 158, ['durable','layered','basic']),
     wave(54000, 'drift', 19, 162, ['basic','layered','durable'])
+  ]),
+  // Zoo finale approach: crowd control, erratic movement, and pre-boss pressure.
+  mission(17, 'Mission 17: Feeding Frenzy', 'Tactical', [
+    wave(1200, 'formation', 14, 130, ['basic','durable','layered','basic']),
+    wave(10200, 'drift', 15, 139, ['layered','basic','durable']),
+    wave(19200, 'formation', 16, 146, ['durable','layered','basic','durable']),
+    wave(28200, 'drift', 17, 152, ['basic','durable','layered','basic']),
+    wave(37200, 'formation', 18, 158, ['layered','basic','durable']),
+    wave(46200, 'drift', 19, 163, ['durable','layered','basic','durable']),
+    wave(55200, 'formation', 20, 168, ['basic','durable','layered','basic'])
+  ]),
+  mission(18, 'Mission 18: Animal Uprising', 'Intense', [
+    wave(1200, 'drift', 15, 140, ['basic','durable','layered','basic']),
+    wave(9200, 'formation', 16, 149, ['layered','basic','durable']),
+    wave(17200, 'drift', 17, 157, ['durable','layered','basic','durable']),
+    wave(25200, 'formation', 18, 163, ['basic','durable','layered','basic']),
+    wave(33200, 'drift', 19, 169, ['layered','basic','durable']),
+    wave(41200, 'formation', 20, 175, ['durable','layered','basic','durable']),
+    wave(49200, 'drift', 21, 180, ['basic','durable','layered','basic'])
+  ]),
+  mission(19, 'Mission 19: The Great Escape', 'Pre-Boss', [
+    wave(1200, 'formation', 16, 145, ['basic','durable','layered','basic']),
+    wave(8800, 'drift', 17, 154, ['layered','basic','durable']),
+    wave(16400, 'formation', 18, 162, ['durable','layered','basic','durable']),
+    wave(24000, 'drift', 19, 169, ['basic','durable','layered','basic']),
+    wave(31600, 'formation', 20, 176, ['layered','basic','durable']),
+    wave(39200, 'drift', 21, 182, ['durable','layered','basic','durable']),
+    wave(46800, 'formation', 22, 187, ['basic','durable','layered','basic']),
+    wave(54400, 'drift', 23, 192, ['layered','basic','durable'])
   ])
 ]);
 
