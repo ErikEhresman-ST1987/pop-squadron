@@ -67,3 +67,13 @@ test('pending refresh waits for the hangar', async () => {
   assert.ok(offline.includes('applyPendingRefresh'));
   assert.ok(main.includes('pop-squadron-hangar'));
 });
+
+test('update waits for the new worker to control the page before reloading', async () => {
+  const source = await readFile(new URL('../src/offline.js', import.meta.url), 'utf8');
+  assert.match(source, /const controllingBuild = controller \? await readWorkerBuild\(controller\) : null/);
+  assert.match(source, /if \(controllingBuild !== version\)/);
+  assert.match(source, /pendingRefresh = \{ version, manual \}/);
+  assert.match(source, /controllerchange/);
+  assert.match(source, /void refreshFor\(version, manual\)/);
+  assert.ok(source.indexOf('if (controllingBuild !== version)') < source.indexOf('window.location.replace(url.href)'));
+});
