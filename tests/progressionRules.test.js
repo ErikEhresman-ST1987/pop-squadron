@@ -44,7 +44,7 @@ test('corrupt and unsupported storage fails safely', () => {
   const invalid = { getItem: () => '{bad json', setItem: () => { throw Error('blocked'); } };
   assert.deepEqual(readProgress(invalid), defaultProgress());
   assert.equal(saveProgress(invalid, defaultProgress()), false);
-  assert.deepEqual(normalizeProgress({ highestUnlocked: 99 }), defaultProgress());
+  assert.deepEqual(normalizeProgress({ highestUnlocked: 99 }), { highestUnlocked: 99 });
   assert.deepEqual(normalizeProgress({ highestUnlocked: 2.5 }), defaultProgress());
   assert.deepEqual(normalizeProgress({ highestUnlocked: '3' }), defaultProgress());
 });
@@ -90,4 +90,13 @@ test('Zoo missions 11–13 unlock sequentially and replay cannot skip ahead', ()
   const api = { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) };
   assert.equal(saveProgress(api, thirteen), true);
   assert.deepEqual(readProgress(api), thirteen);
+});
+
+test('temporary removal of authored missions never erases saved unlocks', () => {
+  const data = new Map([[PROGRESS_KEY, JSON.stringify({ highestUnlocked: 20 })]]);
+  const storage = { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
+  assert.deepEqual(readProgress(storage), { highestUnlocked: 20 });
+  assert.equal(saveProgress(storage, readProgress(storage)), true);
+  assert.deepEqual(JSON.parse(data.get(PROGRESS_KEY)), { highestUnlocked: 20 });
+  assert.deepEqual(completeMission(readProgress(storage), 1, 'victory'), { highestUnlocked: 20 });
 });
