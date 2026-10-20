@@ -15,7 +15,7 @@ import { SHOP_WEAPONS, purchaseWeapon } from './game/shopRules.js';
 import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 import { rewardForBalloon, addReward } from './game/currencyRules.js';
 import { readWallet, creditWallet } from './game/walletRules.js';
-import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward, bossAttackPosition } from './game/bossRules.js';
+import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval } from './game/bossRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -96,19 +96,29 @@ class FlightScene extends Phaser.Scene {
   }
   spawnBoss() {
     this.bossSpawned = true;
-    const shape = this.add.circle(WIDTH / 2, 105, CITY_PARK_BOSS.radius, 0xf27ab9)
+    const zoo = this.mission.id === 20;
+    const config = zoo ? ZOO_BOSS : CITY_PARK_BOSS;
+    const shape = this.add.circle(WIDTH / 2, 105, config.radius, zoo ? 0xb4db73 : 0xf27ab9)
       .setStrokeStyle(5, 0xffe59b).setDepth(3);
-    this.boss = { shape, health: CITY_PARK_BOSS.health, age: 0, attack: { startX: WIDTH / 2, targetX: WIDTH / 2 }, lastPhase: 'patrol' };
+    this.boss = { shape, health: config.health, age: 0, attack: { startX: WIDTH / 2, targetX: WIDTH / 2 }, lastPhase: 'patrol' };
     this.bossWarning = this.add.text(WIDTH / 2, 190, 'DIVE INCOMING!', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#ffdd76' }).setOrigin(.5).setDepth(9).setVisible(false);
-    this.bossLabel = this.add.text(WIDTH / 2, 35, 'GIANT PARTY BALLOON',
+    this.bossLabel = this.add.text(WIDTH / 2, 35, zoo ? 'THE MUTANT MENAGERIE' : 'GIANT PARTY BALLOON',
       { fontFamily: 'system-ui', fontSize: '15px', color: '#fff0c9' }).setOrigin(.5).setDepth(9);
     this.bossBar = this.add.rectangle(WIDTH / 2, 55, 250, 12, 0x6de2a6).setDepth(9);
+    if (zoo) this.nextReinforcementAt = this.elapsed + zooEscortInterval('awakens');
   }
   hitBoss(damage = 1) {
     if (!this.boss) return;
     this.boss.health = bossHit(this.boss.health, damage);
-    this.bossBar.width = 250 * this.boss.health / CITY_PARK_BOSS.health;
-    if (bossPhase(this.boss.health) === 'reinforcements' &&
+    const zoo = this.mission.id === 20;
+    const config = zoo ? ZOO_BOSS : CITY_PARK_BOSS;
+    this.bossBar.width = 250 * this.boss.health / config.health;
+    if (zoo) {
+      const phase = zooBossPhase(this.boss.health);
+      this.boss.shape.setRadius(zooBossRadius(this.boss.health));
+      this.boss.shape.setFillStyle(phase === 'last-gasp' ? 0xf6b77a : phase === 'going-wild' ? 0xe0dd73 : 0xb4db73);
+    }
+    if (!zoo && bossPhase(this.boss.health) === 'reinforcements' &&
         !Number.isFinite(this.nextReinforcementAt))
       this.nextReinforcementAt = this.elapsed + 2500;
     if (this.boss.health === 0) {
@@ -191,6 +201,13 @@ class FlightScene extends Phaser.Scene {
     this.dragPointer = null;
     this.previousPointer = null;
     this.aircraft.alpha = 1;
+    if (outcome === 'victory' && this.mission.id === 20) {
+      const credited = creditWallet(window.localStorage, walletBalance, 1500);
+      walletBalance = credited.balance;
+      walletSaved = credited.saved;
+      this.missionEarnings = addReward(this.missionEarnings, 1500);
+      saveStatus.textContent = 'Zoo boss defeated · Sector complete!';
+    }
     if (outcome === 'victory' && this.mission.id === 10) {
       const reward = bossReward(!bossDefeated);
       const credited = creditWallet(window.localStorage, walletBalance, reward);
@@ -234,11 +251,20 @@ class FlightScene extends Phaser.Scene {
       this.waveIndex++;
       this.updateHud();
     }
-    if (this.mission.id === 10 && !this.bossSpawned &&
+    if ((this.mission.id === 10 || this.mission.id === 20) && !this.bossSpawned &&
         this.waveIndex === this.mission.waves.length && this.balloons.size === 0 &&
-        this.elapsed >= CITY_PARK_BOSS.enterAfterMs) this.spawnBoss();
+        this.elapsed >= (this.mission.id === 20 ? ZOO_BOSS : CITY_PARK_BOSS).enterAfterMs) this.spawnBoss();
     if (this.boss) {
       this.boss.age += dt;
+      if (this.mission.id === 20) {
+        const position = zooBossPosition(this.boss.age * 1000, this.boss.health);
+        this.boss.shape.setPosition(position.x, position.y);
+        this.bossWarning.setVisible(false);
+        if (this.elapsed >= this.nextReinforcementAt) {
+          this.spawnWave({ count: 3, pattern: 'drift', speed: position.phase === 'last-gasp' ? 150 : 130, types: ZOO_BOSS.reinforcementTypes });
+          this.nextReinforcementAt = this.elapsed + zooEscortInterval(position.phase);
+        }
+      } else {
       const cycle = CITY_PARK_BOSS.patrolMs + CITY_PARK_BOSS.warningMs +
         CITY_PARK_BOSS.diveMs + CITY_PARK_BOSS.retreatMs;
       const phaseTime = (this.boss.age * 1000) % cycle;
@@ -260,9 +286,10 @@ class FlightScene extends Phaser.Scene {
           types: CITY_PARK_BOSS.reinforcementTypes });
         this.nextReinforcementAt += CITY_PARK_BOSS.reinforcementIntervalMs;
       }
+      }
       if (this.elapsed >= this.invulnerableUntil &&
           Math.hypot(this.boss.shape.x - this.aircraft.x, this.boss.shape.y - this.aircraft.y) <
-          CITY_PARK_BOSS.radius + 12) {
+          (this.mission.id === 20 ? zooBossRadius(this.boss.health) : CITY_PARK_BOSS.radius) + 12) {
         this.rules.damageAircraft();
         this.invulnerableUntil = this.elapsed + 750;
         this.aircraft.alpha = .5;
@@ -334,7 +361,7 @@ class FlightScene extends Phaser.Scene {
         if (this.finished) return;
       } else if (this.boss && !shot.hitIds.has('boss') &&
           Math.hypot(shot.shape.x - this.boss.shape.x, shot.shape.y - this.boss.shape.y) <
-          CITY_PARK_BOSS.radius + 7) {
+          (this.mission.id === 20 ? zooBossRadius(this.boss.health) : CITY_PARK_BOSS.radius) + 7) {
         shot.hitIds.add('boss');
         if (!shot.piercing) this.removeShot(i);
         this.hitBoss(shot.damage);
@@ -356,7 +383,7 @@ class FlightScene extends Phaser.Scene {
       }
     }
     if (this.aircraft.alpha<1 && this.elapsed>=this.invulnerableUntil) this.aircraft.alpha=1;
-    const result = this.mission.id === 10 ? this.rules.outcome :
+    const result = (this.mission.id === 10 || this.mission.id === 20) ? this.rules.outcome :
       this.rules.checkVictory(this.waveIndex === this.mission.waves.length, this.balloons.size);
     if (result) this.finish(result);
   }
