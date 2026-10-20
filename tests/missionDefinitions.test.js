@@ -4,12 +4,12 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('eleven ordered authored missions with stable lookup', () => {
+test('thirteen ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
     [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss'], [10, 'Boss'],
-    [11, 'Moderate']
+    [11, 'Moderate'], [12, 'Fast'], [13, 'Armored']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -85,5 +85,22 @@ test('Zoo opening mission is playable and preserves the established combat rules
   assert.deepEqual([zoo.health, zoo.collisionDamage, zoo.escapeAllowance], [100, 20, 5]);
   assert.equal(zoo.waves.length, 5);
   assert.ok(zoo.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
-  assert.equal(getMission(12), null);
+  assert.equal(getMission(12)?.name, 'Mission 12: Aviary Rush');
+});
+
+test('Zoo Missions 2 and 3 increase pressure with distinct speed and armor profiles', () => {
+  const [entrance, aviary, reptile] = [11, 12, 13].map(getMission);
+  const total = mission => mission.waves.reduce((sum, wave) => sum + wave.count, 0);
+  assert.ok(total(entrance) < total(aviary) && total(aviary) < total(reptile));
+  assert.ok(aviary.waves[1].at - aviary.waves[0].at < entrance.waves[1].at - entrance.waves[0].at);
+  assert.ok(aviary.waves.at(-1).speed > entrance.waves.at(-1).speed);
+  const armoredShare = mission => mission.waves.reduce((n, wave) => n + wave.types.filter(type => type !== 'basic').length, 0) /
+    mission.waves.reduce((n, wave) => n + wave.types.length, 0);
+  assert.ok(armoredShare(reptile) > armoredShare(aviary));
+  for (const mission of [aviary, reptile]) {
+    assert.equal(mission.escapeAllowance, 5);
+    assert.equal(mission.health, 100);
+    assert.equal(mission.collisionDamage, 20);
+  }
+  assert.equal(getMission(14), null);
 });
