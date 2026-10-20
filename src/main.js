@@ -377,7 +377,7 @@ let ownedWeapons = readOwnership(window.localStorage);
 let loadout = readLoadout(window.localStorage, ownedWeapons);
 let game;
 
-// Only the first sector is available until boss-completion progression exists.
+// Zoo unlocks after the City Park boss; only authored missions can launch.
 let selectedSectorId = 1;
 function renderMissions() {
   sectorSelector.replaceChildren();
@@ -400,7 +400,8 @@ function renderMissions() {
   const selectedMission = getMission(selectedMissionId);
   if (!selectedMission || !isMissionUnlocked(progress, selectedMissionId) ||
       getSectorForMission(selectedMissionId)?.id !== selectedSectorId) {
-    selectedMissionId = sector.id === 1 ? sector.firstMissionId : null;
+    selectedMissionId = isMissionUnlocked(progress, sector.firstMissionId) && getMission(sector.firstMissionId)
+      ? sector.firstMissionId : null;
   }
   for (let id = sector.firstMissionId; id <= sector.lastMissionId; id++) {
     const mission = getMission(id);
