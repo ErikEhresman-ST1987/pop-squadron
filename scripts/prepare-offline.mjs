@@ -3,6 +3,8 @@ import { createHash } from 'node:crypto';
 import { join, relative, sep } from 'node:path';
 
 const root = 'dist';
+const release = process.env.GITHUB_SHA || process.env.POP_BUILD_ID || 'local-development';
+await writeFile(join(root, 'release.json'), JSON.stringify({ build: release }) + '\n');
 const prefix = '/pop-squadron/';
 async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -26,6 +28,7 @@ for (const path of paths) {
 }
 const cache = 'pop-squadron-static-' + hash.digest('hex').slice(0, 16);
 const source = `const CACHE = ${JSON.stringify(cache)};
+const BUILD = ${JSON.stringify('${release}')};
 const ASSETS = ${JSON.stringify(urls)};
 const SCOPE = '/pop-squadron/';
 // Keep the active cache immutable for the lifetime of its worker. New workers
@@ -53,10 +56,15 @@ self.addEventListener('activate', event => {
     }
   })());
 });
+self.addEventListener('message', event => {
+  if (event.data?.type === 'BUILD_VERSION') event.ports[0]?.postMessage({ build: BUILD });
+});
 self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || !url.pathname.startsWith(SCOPE)) return;
+  // The release probe must reach the network; never serve a stale precached version.
+  if (url.pathname === SCOPE + 'release.json') return;
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     if (request.mode === 'navigate') {
