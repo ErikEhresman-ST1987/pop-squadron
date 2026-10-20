@@ -54,6 +54,8 @@ test('manual update retry is not blocked by a previous automatic refresh attempt
   assert.match(source, /if \(!manual && sessionStorage\.getItem\(refreshKey\) === version\)/);
   assert.match(source, /checkForUpdates\(true\)/);
   assert.match(source, /refreshFor\(latest, manual\)/);
+  assert.ok(source.includes('if (activeBuild === latest) refreshFor(latest, manual);'));
+  assert.doesNotMatch(source, /\buserRequested\b/);
   assert.match(source, /searchParams\.set\('release'/);
   assert.match(source, /window\.location\.replace\(url\.href\)/);
   assert.match(source, /sessionStorage\.removeItem\(refreshKey\)/);
