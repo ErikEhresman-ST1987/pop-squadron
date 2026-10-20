@@ -4,14 +4,14 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('nineteen ordered authored missions with stable lookup', () => {
+test('twenty ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
     [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss'], [10, 'Boss'],
     [11, 'Moderate'], [12, 'Fast'], [13, 'Armored'],
     [14, 'Tactical'], [15, 'Intense'], [16, 'Challenging'],
-    [17, 'Tactical'], [18, 'Intense'], [19, 'Pre-Boss']
+    [17, 'Tactical'], [18, 'Intense'], [19, 'Pre-Boss'], [20, 'Boss']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -104,7 +104,7 @@ test('Zoo Missions 2 and 3 increase pressure with distinct speed and armor profi
     assert.equal(mission.health, 100);
     assert.equal(mission.collisionDamage, 20);
   }
-  assert.equal(getMission(20), null);
+  assert.equal(getMission(21), null);
 });
 
 
@@ -143,5 +143,13 @@ test('Zoo Missions 17–19 escalate crowd pressure and speed without changing co
     assert.ok(mission.waves.some(w => w.pattern === 'formation'));
     assert.ok(mission.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
   }
-  assert.equal(getMission(20), null); // Zoo boss is reserved for a separate increment.
+  assert.equal(getMission(21), null); // Zoo boss is reserved for a separate increment.
+});
+
+
+test('Zoo boss has three opening waves and preserves five-escape rule', () => {
+  const boss = getMission(20);
+  assert.equal(boss.name, 'Mission 20: The Mutant Menagerie');
+  assert.equal(boss.waves.length, 3);
+  assert.deepEqual([boss.health, boss.collisionDamage, boss.escapeAllowance], [100, 20, 5]);
 });
