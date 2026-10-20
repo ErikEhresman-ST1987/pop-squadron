@@ -81,6 +81,15 @@ export const MISSIONS = Object.freeze([
     wave(1200, 'formation', 7, 105, ['basic', 'durable']),
     wave(11500, 'drift', 8, 115, ['basic', 'layered', 'durable']),
     wave(22500, 'formation', 9, 120, ['durable', 'basic', 'layered'])
+  ]),
+  // Sector 2 — Zoo, opening mission. Reuses proven balloon types and mechanics;
+  // distinctive Zoo enemy art and the sector boss belong to later increments.
+  mission(11, 'Mission 11: Zoo Entrance', 'Moderate', [
+    wave(1200, 'formation', 8, 98, ['basic', 'durable', 'basic']),
+    wave(14200, 'drift', 9, 110, ['basic', 'layered', 'durable']),
+    wave(28200, 'formation', 10, 119, ['durable', 'basic', 'layered']),
+    wave(43200, 'drift', 11, 125, ['layered', 'basic', 'durable']),
+    wave(58200, 'formation', 12, 132, ['basic', 'durable', 'layered'])
   ])
 ]);
 
