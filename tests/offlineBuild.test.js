@@ -48,3 +48,13 @@ test('release probe bypasses service worker cache and reports worker build ident
   assert.ok(source.includes('visibilitychange'));
   assert.ok(source.includes('check-updates'));
 });
+
+test('manual update retry is not blocked by a previous automatic refresh attempt', async () => {
+  const source = await readFile(new URL('../src/offline.js', import.meta.url), 'utf8');
+  assert.match(source, /if \(!manual && sessionStorage\.getItem\(refreshKey\) === version\)/);
+  assert.match(source, /checkForUpdates\(true\)/);
+  assert.match(source, /refreshFor\(latest, manual\)/);
+  assert.match(source, /searchParams\.set\('release'/);
+  assert.match(source, /window\.location\.replace\(url\.href\)/);
+  assert.match(source, /sessionStorage\.removeItem\(refreshKey\)/);
+});
