@@ -60,3 +60,16 @@ test('previously saved Mission 3 unlock persists and advances to Mission 4', () 
   assert.equal(saveProgress(storage, next), true);
   assert.equal(readProgress(storage).highestUnlocked, 4);
 });
+
+test('defeating City Park boss unlocks Zoo Mission 11 and preserves saved progression', () => {
+  const progress = { highestUnlocked: 10 };
+  const zoo = completeMission(progress, 10, 'victory');
+  assert.deepEqual(zoo, { highestUnlocked: 11 });
+  assert.equal(isMissionUnlocked(zoo, 11), true);
+  assert.equal(isMissionUnlocked(zoo, 12), false);
+  const storage = new Map();
+  const api = { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) };
+  assert.equal(saveProgress(api, zoo), true);
+  assert.deepEqual(readProgress(api), zoo);
+  assert.deepEqual(completeMission(zoo, 11, 'victory'), zoo);
+});
