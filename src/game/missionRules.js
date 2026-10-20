@@ -12,13 +12,20 @@ export class MissionRules {
     this.resolved = new Set();
     this.outcome = null;
   }
+  // Boss contact is damage without resolving a balloon or incrementing escapes.
+  damageAircraft() {
+    if (this.outcome) return false;
+    this.health = Math.max(0, this.health - this.config.collisionDamage);
+    if (this.health === 0) this.outcome = 'defeat';
+    return true;
+  }
   resolve(id, kind) {
     if (this.outcome || this.resolved.has(id)) return false;
     if (!['pop', 'escape', 'collision'].includes(kind)) return false;
     this.resolved.add(id);
     if (kind === 'pop') this.popped++;
     if (kind === 'escape') this.escapes++;
-    if (kind === 'collision') this.health = Math.max(0, this.health - this.config.collisionDamage);
+    if (kind === 'collision') this.damageAircraft();
     if (this.health === 0 || this.escapes > this.config.escapeAllowance) this.outcome = 'defeat';
     return true;
   }
