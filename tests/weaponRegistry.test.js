@@ -7,7 +7,9 @@ import { normalizeOwnership } from '../src/game/ownershipRules.js';
 test('three categories and two groupings remain data-driven', () => {
   assert.deepEqual(WEAPON_CATEGORIES.map(c => c.label), ['Primary', 'Wing Guns', 'Missiles']);
   assert.deepEqual(WEAPON_GROUPS.map(g => g.id), ['general', 'specialized']);
-  assert.equal(WEAPON_REGISTRY.length, 3);
+  assert.equal(WEAPON_REGISTRY.length, 7);
+  assert.deepEqual(weaponsIn('primary', 'general').map(w => w.id), ['forward', 'rapid', 'heavy', 'burst']);
+  assert.deepEqual(weaponsIn('primary', 'specialized').map(w => w.id), ['piercing']);
   assert.deepEqual(weaponsIn('secondary-1', 'general').map(w => w.id), ['sides']);
   assert.deepEqual(weaponsIn('secondary-1', 'specialized'), []);
 });
