@@ -7,11 +7,13 @@ import { normalizeOwnership } from '../src/game/ownershipRules.js';
 test('three categories and two groupings remain data-driven', () => {
   assert.deepEqual(WEAPON_CATEGORIES.map(c => c.label), ['Primary', 'Wing Guns', 'Missiles']);
   assert.deepEqual(WEAPON_GROUPS.map(g => g.id), ['general', 'specialized']);
-  assert.equal(WEAPON_REGISTRY.length, 11);
+  assert.equal(WEAPON_REGISTRY.length, 15);
   assert.deepEqual(weaponsIn('primary', 'general').map(w => w.id), ['forward', 'rapid', 'heavy', 'burst']);
   assert.deepEqual(weaponsIn('primary', 'specialized').map(w => w.id), ['piercing']);
   assert.deepEqual(weaponsIn('secondary-1', 'general').map(w => w.id), ['sides', 'wide']);
   assert.deepEqual(weaponsIn('secondary-1', 'specialized').map(w => w.id), ['rear', 'turrets', 'flak']);
+  assert.deepEqual(weaponsIn('secondary-2', 'general').map(w => w.id), ['swarm', 'heavy-missile', 'tracking']);
+  assert.deepEqual(weaponsIn('secondary-2', 'specialized').map(w => w.id), ['cluster', 'interceptor']);
 });
 test('existing weapons retain identity, prices, cooldowns and save compatibility', () => {
   assert.equal(getWeapon('forward').intervalMs, 240);
