@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { drawScenery, sceneryTheme, SCENERY_WIDTH, SCENERY_HEIGHT, SCROLL_SPEED } from './game/scenery.js';
 import './style.css';
 import { setupOffline } from './offline.js';
 import { MissionRules } from './game/missionRules.js';
@@ -39,11 +40,17 @@ class FlightScene extends Phaser.Scene {
     this.boss = null;
     this.bossSpawned = false;
     this.nextReinforcementAt = Infinity;
-    this.cameras.main.setBackgroundColor('#142c42');
-    const grid = this.add.graphics().setDepth(-2);
-    grid.lineStyle(1, 0x3d6582, 0.4);
-    for (let x = 45; x < WIDTH; x += 45) grid.lineBetween(x, 0, x, HEIGHT);
-    for (let y = 40; y < HEIGHT; y += 40) grid.lineBetween(0, y, WIDTH, y);
+    this.cameras.main.setBackgroundColor('#91bd7b');
+    // Generate a single seamless texture per sector; scroll it as one background.
+    const theme = sceneryTheme(this.mission.id);
+    const textureKey = 'scenery-' + theme;
+    if (!this.textures.exists(textureKey)) {
+      const canvasTexture = this.textures.createCanvas(textureKey, SCENERY_WIDTH, SCENERY_HEIGHT);
+      drawScenery(canvasTexture.context, theme);
+      canvasTexture.refresh();
+    }
+    this.scenery = this.add.tileSprite(0, 0, WIDTH, HEIGHT, textureKey)
+      .setOrigin(0, 0).setDepth(-2);
     this.aircraft = this.add.container(WIDTH / 2, HEIGHT * .77).setDepth(4);
     const hull = this.add.graphics();
     hull.fillStyle(0x55c7ef).lineStyle(2, 0xe0f7ff);
@@ -238,6 +245,7 @@ class FlightScene extends Phaser.Scene {
     if (this.finished) return;
     const dt = Math.min(delta,50)/1000;
     this.elapsed += delta;
+    this.scenery.tilePositionY -= SCROLL_SPEED * dt;
     const k = this.keys;
     const h = Number(k.D.isDown||k.RIGHT.isDown)-Number(k.A.isDown||k.LEFT.isDown);
     const v = Number(k.S.isDown||k.DOWN.isDown)-Number(k.W.isDown||k.UP.isDown);
