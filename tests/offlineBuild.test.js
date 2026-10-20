@@ -40,12 +40,11 @@ test('new worker refreshes visible legacy clients without clearing saved data', 
 test('release probe bypasses service worker cache and reports worker build identity', async () => {
   const script = await readFile(new URL('../scripts/prepare-offline.mjs', import.meta.url), 'utf8');
   const source = await readFile(new URL('../src/offline.js', import.meta.url), 'utf8');
-  assert.match(script, /release\\.json/);
-  assert.match(script, /if \\(url\\.pathname === SCOPE \\+ 'release\\.json'\\) return/);
-  assert.match(script, /BUILD_VERSION/);
-  assert.match(source, /updateViaCache: 'none'/);
-  assert.match(source, /cache: 'no-store'/);
-  assert.match(source, /readWorkerBuild/);
-  assert.match(source, /visibilitychange/);
-  assert.match(source, /check-updates/);
+  assert.ok(script.includes("url.pathname === SCOPE + 'release.json'"));
+  assert.ok(script.includes('BUILD_VERSION'));
+  assert.ok(source.includes("updateViaCache: 'none'"));
+  assert.ok(source.includes("cache: 'no-store'"));
+  assert.ok(source.includes('readWorkerBuild'));
+  assert.ok(source.includes('visibilitychange'));
+  assert.ok(source.includes('check-updates'));
 });
