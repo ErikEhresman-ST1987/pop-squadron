@@ -28,7 +28,7 @@ for (const path of paths) {
 }
 const cache = 'pop-squadron-static-' + hash.digest('hex').slice(0, 16);
 const source = `const CACHE = ${JSON.stringify(cache)};
-const BUILD = ${JSON.stringify('${release}')};
+const BUILD = ${JSON.stringify(release)};
 const ASSETS = ${JSON.stringify(urls)};
 const SCOPE = '/pop-squadron/';
 // Keep the active cache immutable for the lifetime of its worker. New workers
