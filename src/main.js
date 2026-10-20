@@ -33,6 +33,8 @@ class FlightScene extends Phaser.Scene {
       'assests/background/BD8CB5DA-F00C-4ABB-9089-755529C5C2DE-background.webp');
     this.load.image('zoo-entrance-upload', import.meta.env.BASE_URL +
       'assests/background/CA386BA7-C32A-4AC8-A84C-4C2B44A87456-background.webp');
+    this.load.image('zoo-habitats-upload', import.meta.env.BASE_URL +
+      'assests/background/959B0989-D4F2-483D-A808-3EFEC889E20B-background.webp');
   }
   create() {
     this.mission = getMission(selectedMissionId); // Selection is captured at mission start.
@@ -57,7 +59,8 @@ class FlightScene extends Phaser.Scene {
     const customKey = theme === 'park-entrance' ? 'city-park-upload'
       : theme === 'park-recreation' ? 'city-park-recreation'
       : theme === 'park-lakeside' ? 'city-park-lakeside'
-      : theme === 'zoo-entrance' ? 'zoo-entrance-upload' : null;
+      : theme === 'zoo-entrance' ? 'zoo-entrance-upload'
+      : theme === 'zoo-habitats' ? 'zoo-habitats-upload' : null;
     const useCustom = customKey && this.textures.exists(customKey);
     const textureKey = useCustom ? customKey : 'scenery-' + theme;
     if (!useCustom && !this.textures.exists(textureKey)) {
