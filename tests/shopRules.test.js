@@ -51,3 +51,12 @@ test('ownership write failure restores balance', () => {
   assert.equal(readWallet(s), 1000);
   assert.deepEqual(readOwnership(s), ['forward']);
 });
+
+test('purchase confirmation is moved beside selected weapon and returned after closing', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.match(source, /row\.after\(confirmation\)/);
+  assert.match(source, /confirmation\.scrollIntoView/);
+  assert.match(source, /confirm-purchase'\)\.focus/);
+  assert.match(source, /shopElement\.after\(confirmation\)/);
+});
