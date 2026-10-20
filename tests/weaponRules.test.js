@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { WEAPONS, initialWeaponState, nearestTarget, advanceWeapons } from '../src/game/weaponRules.js';
+import { WEAPONS, initialWeaponState, nearestTarget, advanceWeapons as runWeapons } from '../src/game/weaponRules.js';
 
+const advanceWeapons = (state, delta, origin, targets = [], equipped = ['forward', 'sides', 'tracking']) =>
+  runWeapons(state, delta, origin, targets, equipped);
 const origin = { x: 100, y: 100 };
 const targets = [{ id: 7, x: 110, y: 100, resolved: false }, { id: 8, x: 180, y: 100, resolved: false }];
 
@@ -83,4 +85,15 @@ test('reenabling a weapon restores its ordinary firing schedule', () => {
   const disabled = advanceWeapons(initialWeaponState(), 1300, origin, targets, ['forward']);
   const enabled = advanceWeapons(disabled.state, 650, origin, targets, ['forward', 'sides']);
   assert.equal(enabled.volleys.filter(v => v.weaponId === 'sides').length, 1);
+});
+
+test('new primary guns respect cooldowns and equipped selection', () => {
+  for (const [id, interval] of [['rapid',130],['heavy',900],['piercing',500],['burst',850]]) {
+    const before = runWeapons(initialWeaponState(), interval - 1, origin, targets, [id]);
+    assert.equal(before.volleys.length, 0);
+    const fired = runWeapons(before.state, 1, origin, targets, [id]);
+    assert.deepEqual(fired.volleys.map(v => v.weaponId), [id]);
+  }
+  const burst = runWeapons(initialWeaponState(), 850, origin, targets, ['burst']);
+  assert.equal(burst.volleys[0].projectiles, 3);
 });
