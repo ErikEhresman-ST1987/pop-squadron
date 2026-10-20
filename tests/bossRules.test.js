@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CITY_PARK_BOSS, bossPhase, bossHit, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval } from '../src/game/bossRules.js';
+import { CITY_PARK_BOSS, bossPhase, bossHit, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval, zooAttackTiming, zooAttackPosition } from '../src/game/bossRules.js';
 import { getMission } from '../src/game/missionDefinitions.js';
 import { completeMission } from '../src/game/progressionRules.js';
 
@@ -52,4 +52,20 @@ test('Zoo boss transitions through three phases and stays in upper/middle battle
   }
   assert.ok(zooEscortInterval('last-gasp') < zooEscortInterval('awakens'));
   assert.ok(ZOO_BOSS.enterAfterMs > getMission(20).waves.at(-1).at);
+});
+
+
+test('Zoo charges telegraph, lock a target, strike it and return to upper battlefield', () => {
+  for (const phase of ['awakens', 'going-wild', 'last-gasp']) {
+    const timing = zooAttackTiming(phase);
+    const state = { timing, bossAgeMs: 0, health: 180, startX: 140, startY: 130,
+      targetX: 275, targetY: 490, returnX: 140, returnY: 130 };
+    assert.equal(zooAttackPosition(timing.patrolMs + 1, state).action, 'warning');
+    assert.deepEqual(zooAttackPosition(timing.patrolMs + timing.warningMs + timing.chargeMs, state),
+      { x: 275, y: 490, action: 'retreat' });
+    const end = zooAttackPosition(timing.patrolMs + timing.warningMs + timing.chargeMs + timing.retreatMs, state);
+    assert.deepEqual(end, { x: 140, y: 130, action: 'retreat' });
+  }
+  assert.ok(zooAttackTiming('last-gasp').warningMs < zooAttackTiming('awakens').warningMs);
+  assert.ok(zooAttackTiming('last-gasp').patrolMs < zooAttackTiming('awakens').patrolMs);
 });
