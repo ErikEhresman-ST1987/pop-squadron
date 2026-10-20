@@ -97,3 +97,16 @@ test('new primary guns respect cooldowns and equipped selection', () => {
   const burst = runWeapons(initialWeaponState(), 850, origin, targets, ['burst']);
   assert.equal(burst.volleys[0].projectiles, 3);
 });
+
+test('new missile systems have independent cooldowns and require targets', () => {
+  for (const [id, interval, count] of [['swarm', 1700, 3], ['heavy-missile', 2200, 1], ['cluster', 2100, 1], ['interceptor', 650, 1]]) {
+    const before = runWeapons(initialWeaponState(), interval - 1, origin, targets, [id]);
+    assert.equal(before.volleys.length, 0);
+    const fired = runWeapons(before.state, 1, origin, targets, [id]);
+    assert.deepEqual(fired.volleys.map(v => v.weaponId), [id]);
+    assert.equal(fired.volleys[0].projectiles, count);
+    assert.equal(fired.volleys[0].targetId, 7);
+    const noTarget = runWeapons(initialWeaponState(), interval, origin, [], [id]);
+    assert.equal(noTarget.volleys.length, 0);
+  }
+});
