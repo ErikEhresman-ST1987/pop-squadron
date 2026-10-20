@@ -6,6 +6,7 @@ import { getMission } from './game/missionDefinitions.js';
 import { SECTORS, getSector, getSectorForMission } from './game/sectorDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
+import { WEAPON_GROUPS, weaponsIn } from './game/weaponRegistry.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
 import { readOwnership } from './game/ownershipRules.js';
 import { SHOP_WEAPONS, purchaseWeapon } from './game/shopRules.js';
@@ -415,36 +416,71 @@ function renderMissions() {
   launch.textContent = active && !launch.disabled ? 'Launch ' + active.name : 'No mission available';
 }
 
+// Category disclosure state is independent of equipment and survives re-rendering.
+const expandedWeaponCategories = new Set(['primary']);
 function renderSlots() {
   slotContainer.replaceChildren();
   for (const slot of SLOTS) {
-    const row = document.createElement('div');
-    row.className = 'weapon-slot';
-    const details = document.createElement('div');
-    const title = document.createElement('strong');
-    title.textContent = slot.label;
-    const name = document.createElement('span');
-    name.textContent = slot.name;
-    details.append(title, name);
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'equipment-toggle';
-    const owned = ownedWeapons.includes(slot.weaponId);
-    const equipped = loadout[slot.id] === slot.weaponId;
-    toggle.disabled = !owned;
-    toggle.textContent = !owned ? 'Locked · Shop coming soon' : equipped ? 'Equipped' : 'Unequipped';
-    toggle.setAttribute('aria-pressed', String(equipped));
-    toggle.setAttribute('aria-label', slot.name + ': ' + (equipped ? 'equipped' : 'unequipped'));
-    toggle.addEventListener('click', () => {
-      if (!owned) return;
-      loadout = { ...loadout, [slot.id]: equipped ? null : slot.weaponId };
-      saveStatus.textContent = saveLoadout(window.localStorage, loadout, ownedWeapons)
-        ? 'Equipment saved on this device'
-        : 'Storage unavailable: equipment may not persist';
+    const section = document.createElement('section');
+    section.className = 'weapon-category';
+    const heading = document.createElement('button');
+    heading.type = 'button';
+    heading.className = 'weapon-category-toggle';
+    const equippedWeapon = loadout[slot.id];
+    const equippedName = equippedWeapon ? (weaponsIn(slot.id, 'general').concat(weaponsIn(slot.id, 'specialized')).find(w => w.id === equippedWeapon)?.name ?? equippedWeapon) : 'None equipped';
+    heading.textContent = (expandedWeaponCategories.has(slot.id) ? '▾ ' : '▸ ') + slot.label + ' · ' + equippedName;
+    heading.setAttribute('aria-expanded', String(expandedWeaponCategories.has(slot.id)));
+    heading.addEventListener('click', () => {
+      if (expandedWeaponCategories.has(slot.id)) expandedWeaponCategories.delete(slot.id);
+      else expandedWeaponCategories.add(slot.id);
       renderSlots();
     });
-    row.append(details, toggle);
-    slotContainer.append(row);
+    section.append(heading);
+    if (expandedWeaponCategories.has(slot.id)) {
+      for (const group of WEAPON_GROUPS) {
+        const label = document.createElement('h4');
+        label.className = 'weapon-group-heading';
+        label.textContent = group.label;
+        section.append(label);
+        const options = weaponsIn(slot.id, group.id);
+        if (!options.length) {
+          const empty = document.createElement('p');
+          empty.className = 'hangar-note';
+          empty.textContent = 'No weapons available yet';
+          section.append(empty);
+        }
+        for (const weapon of options) {
+          const row = document.createElement('div');
+          row.className = 'weapon-slot';
+          const details = document.createElement('div');
+          const title = document.createElement('strong');
+          title.textContent = weapon.name;
+          const description = document.createElement('span');
+          description.textContent = weapon.description;
+          details.append(title, description);
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'equipment-toggle';
+          const owned = ownedWeapons.includes(weapon.id);
+          const equipped = loadout[slot.id] === weapon.id;
+          toggle.disabled = !owned;
+          toggle.textContent = !owned ? 'Not owned' : equipped ? 'Equipped' : 'Equip';
+          toggle.setAttribute('aria-pressed', String(equipped));
+          toggle.setAttribute('aria-label', weapon.name + ': ' + toggle.textContent);
+          toggle.addEventListener('click', () => {
+            if (!owned) return;
+            loadout = { ...loadout, [slot.id]: equipped ? null : weapon.id };
+            saveStatus.textContent = saveLoadout(window.localStorage, loadout, ownedWeapons)
+              ? 'Equipment saved on this device'
+              : 'Storage unavailable: equipment may not persist';
+            renderSlots();
+          });
+          row.append(details, toggle);
+          section.append(row);
+        }
+      }
+    }
+    slotContainer.append(section);
   }
 }
 const shopElement = document.getElementById('weapon-shop');
