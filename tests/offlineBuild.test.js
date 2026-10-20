@@ -22,3 +22,17 @@ test('offline precache includes HTML and compiled assets and preserves older ver
   assert.match(script, /name === CACHE/);
   assert.doesNotMatch(script, /caches\.delete\(name\)/);
 });
+
+test('installed app reloads on a new controlling worker', async () => {
+  const source = await readFile(new URL('../src/offline.js', import.meta.url), 'utf8');
+  assert.match(source, /controllerchange/);
+  assert.match(source, /window\.location\.reload/);
+  assert.match(source, /sessionStorage\.setItem/);
+});
+test('new worker refreshes visible legacy clients without clearing saved data', async () => {
+  const source = await readFile(new URL('../scripts/prepare-offline.mjs', import.meta.url), 'utf8');
+  assert.match(source, /self\.clients\.matchAll/);
+  assert.match(source, /client\.visibilityState !== 'visible'/);
+  assert.match(source, /client\.navigate\(client\.url\)/);
+  assert.doesNotMatch(source, /localStorage\.clear|caches\.delete/);
+});
