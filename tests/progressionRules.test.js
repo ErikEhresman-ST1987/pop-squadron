@@ -113,6 +113,19 @@ test('Zoo missions 14–16 unlock sequentially without skipping or exceeding aut
   assert.deepEqual(fifteen, { highestUnlocked: 15 });
   const sixteen = completeMission(fifteen, 15, 'victory');
   assert.deepEqual(sixteen, { highestUnlocked: 16 });
-  assert.deepEqual(completeMission(sixteen, 16, 'victory'), sixteen);
+  assert.deepEqual(completeMission(sixteen, 16, 'victory'), { highestUnlocked: 17 });
   assert.deepEqual(completeMission(sixteen, 14, 'victory'), sixteen);
+});
+
+
+test('Zoo missions 17–19 unlock sequentially and stop before the unbuilt boss', () => {
+  const seventeen = { highestUnlocked: 17 };
+  assert.deepEqual(completeMission(seventeen, 18, 'victory'), seventeen);
+  const eighteen = completeMission(seventeen, 17, 'victory');
+  assert.deepEqual(eighteen, { highestUnlocked: 18 });
+  const nineteen = completeMission(eighteen, 18, 'victory');
+  assert.deepEqual(nineteen, { highestUnlocked: 19 });
+  assert.deepEqual(completeMission(nineteen, 19, 'victory'), nineteen);
+  assert.equal(isMissionUnlocked(nineteen, 20), false);
+  assert.deepEqual(completeMission(nineteen, 17, 'victory'), nineteen);
 });
