@@ -107,6 +107,31 @@ export const MISSIONS = Object.freeze([
     wave(37500, 'drift', 13, 134, ['layered', 'durable', 'basic']),
     wave(49600, 'formation', 14, 140, ['durable', 'layered', 'durable']),
     wave(61700, 'drift', 15, 146, ['layered', 'durable', 'basic'])
+  ]),
+  mission(14, 'Mission 14: Monkey Business', 'Tactical', [
+    wave(1200, 'drift', 11, 118, ['basic','layered','durable']),
+    wave(12600, 'formation', 12, 125, ['durable','layered','basic']),
+    wave(24000, 'drift', 13, 132, ['basic','layered','durable']),
+    wave(35400, 'formation', 14, 137, ['durable','layered','basic']),
+    wave(46800, 'drift', 15, 143, ['basic','layered','durable']),
+    wave(58200, 'formation', 16, 148, ['durable','layered','basic'])
+  ]),
+  mission(15, 'Mission 15: Safari Stampede', 'Intense', [
+    wave(1200, 'formation', 12, 124, ['basic','layered','durable']),
+    wave(10600, 'drift', 13, 132, ['durable','layered','basic']),
+    wave(20000, 'formation', 14, 138, ['basic','layered','durable']),
+    wave(29400, 'drift', 15, 144, ['durable','layered','basic']),
+    wave(38800, 'formation', 16, 149, ['basic','layered','durable']),
+    wave(48200, 'drift', 17, 154, ['durable','layered','basic'])
+  ]),
+  mission(16, 'Mission 16: Night at the Zoo', 'Challenging', [
+    wave(1200, 'drift', 13, 125, ['basic','layered','durable']),
+    wave(10000, 'formation', 14, 134, ['durable','layered','basic']),
+    wave(18800, 'drift', 15, 142, ['basic','layered','durable']),
+    wave(27600, 'formation', 16, 147, ['durable','layered','basic']),
+    wave(36400, 'drift', 17, 153, ['basic','layered','durable']),
+    wave(45200, 'formation', 18, 158, ['durable','layered','basic']),
+    wave(54000, 'drift', 19, 162, ['basic','layered','durable'])
   ])
 ]);
 
