@@ -5,7 +5,8 @@ const PATTERNS = Object.freeze({
   burst: Object.freeze([-9, 0, 9]),
   wide: Object.freeze([-24, 0, 24]),
   rear: Object.freeze([-24, 24]),
-  turrets: Object.freeze([-24, 24])
+  turrets: Object.freeze([-24, 24]),
+  swarm: Object.freeze([-22, 0, 22])
 });
 
 export function projectileSpecs(weapon, origin, targetId = null) {
