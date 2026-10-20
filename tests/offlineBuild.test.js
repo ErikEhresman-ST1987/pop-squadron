@@ -11,7 +11,8 @@ test('offline navigation serves the HTML from the same versioned cache as JS and
   assert.match(script, /if \(cached\) return cached/);
   assert.match(script, /const oldAsset = await oldCache\.match\(request\)/);
   assert.match(script, /if \(oldAsset\) return oldAsset/);
-  assert.doesNotMatch(script, /if \(response\.ok\) return response/);
+  assert.match(script, /if \(url\.searchParams\.has\('release'\)\)/);
+  assert.match(script, /fetch\(request, \{ cache: 'no-store' \}\)/);
 });
 
 test('offline precache includes HTML and compiled assets and preserves older versions for existing clients', async () => {
