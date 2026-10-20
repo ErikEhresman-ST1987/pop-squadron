@@ -35,3 +35,38 @@ export function bossAttackPosition(ageMs, aircraftX, state, config = CITY_PARK_B
     y: config.diveBottomY + (config.patrolY - config.diveBottomY) * f,
     phase: 'retreat', targetX: state.targetX };
 }
+
+
+// Zoo boss: remains in the upper/middle battlefield; three health-driven phases.
+export const ZOO_BOSS = Object.freeze({
+  health: 180, radius: 49, enterAfterMs: 32000, patrolCenterX: 180,
+  reinforcementTypes: Object.freeze(['basic', 'layered', 'durable']),
+  phaseThresholds: Object.freeze([0.65, 0.30])
+});
+export function zooBossPhase(health, maxHealth = ZOO_BOSS.health) {
+  if (health <= 0) return 'defeated';
+  if (health <= maxHealth * ZOO_BOSS.phaseThresholds[1]) return 'last-gasp';
+  if (health <= maxHealth * ZOO_BOSS.phaseThresholds[0]) return 'going-wild';
+  return 'awakens';
+}
+export function zooBossRadius(health, maxHealth = ZOO_BOSS.health) {
+  const phase = zooBossPhase(health, maxHealth);
+  return phase === 'last-gasp' ? 32 : phase === 'going-wild' ? 42 : ZOO_BOSS.radius;
+}
+export function zooBossPosition(ageMs, health, maxHealth = ZOO_BOSS.health) {
+  const t = ageMs / 1000;
+  const phase = zooBossPhase(health, maxHealth);
+  const x = phase === 'last-gasp'
+    ? 180 + Math.sin(t * 3.4) * 90 + Math.sin(t * 5.3) * 30
+    : phase === 'going-wild'
+      ? 180 + Math.sin(t * 2.3) * 105 + Math.sin(t * 0.9) * 20
+      : 180 + Math.sin(t * 1.1) * 105;
+  const y = phase === 'last-gasp'
+    ? 155 + Math.sin(t * 2.7) * 55
+    : phase === 'going-wild' ? 140 + Math.sin(t * 1.7) * 62
+      : 115 + Math.sin(t * 0.85) * 28;
+  return { x: Math.max(55, Math.min(305, x)), y: Math.max(70, Math.min(225, y)), phase };
+}
+export function zooEscortInterval(phase) {
+  return phase === 'last-gasp' ? 7800 : phase === 'going-wild' ? 9500 : 12000;
+}
