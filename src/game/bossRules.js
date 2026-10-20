@@ -70,3 +70,27 @@ export function zooBossPosition(ageMs, health, maxHealth = ZOO_BOSS.health) {
 export function zooEscortInterval(phase) {
   return phase === 'last-gasp' ? 7800 : phase === 'going-wild' ? 9500 : 12000;
 }
+
+
+// Attack cycle timing is selected at the beginning of each charge, so taking
+// damage mid-charge cannot unexpectedly cancel the telegraphed maneuver.
+export function zooAttackTiming(phase) {
+  if (phase === 'last-gasp') return { patrolMs: 2300, warningMs: 650, chargeMs: 680, retreatMs: 850 };
+  if (phase === 'going-wild') return { patrolMs: 3400, warningMs: 850, chargeMs: 850, retreatMs: 1100 };
+  return { patrolMs: 4700, warningMs: 1150, chargeMs: 1050, retreatMs: 1300 };
+}
+export function zooAttackPosition(elapsedMs, state) {
+  const { patrolMs, warningMs, chargeMs, retreatMs } = state.timing;
+  if (elapsedMs < patrolMs) return { ...zooBossPosition(state.bossAgeMs + elapsedMs, state.health), action: 'patrol' };
+  if (elapsedMs < patrolMs + warningMs)
+    return { x: state.startX, y: state.startY, action: 'warning' };
+  const chargeStart = patrolMs + warningMs;
+  if (elapsedMs < chargeStart + chargeMs) {
+    const f = (elapsedMs - chargeStart) / chargeMs;
+    return { x: state.startX + (state.targetX - state.startX) * f,
+      y: state.startY + (state.targetY - state.startY) * f, action: 'charge' };
+  }
+  const f = Math.min(1, (elapsedMs - chargeStart - chargeMs) / retreatMs);
+  return { x: state.targetX + (state.returnX - state.targetX) * f,
+    y: state.targetY + (state.returnY - state.targetY) * f, action: 'retreat' };
+}
