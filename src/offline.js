@@ -5,7 +5,6 @@ const refreshKey = 'pop-squadron-refreshed-build';
 let registration;
 let checking = false;
 let refreshing = false;
-let userRequested = false;
 // An automatic retry is limited per release, but manual retries are never blocked.
 
 function show(message) {
@@ -42,7 +41,6 @@ export async function checkForUpdates(manual = false) {
   if (checking) return;
   if (!navigator.onLine) { show('Offline · Installed version ' + currentVersion()); return; }
   checking = true;
-  if (manual) userRequested = true;
   show('Checking for updates · Installed ' + currentVersion());
   try {
     const latest = await probeRelease();
@@ -59,7 +57,7 @@ export async function checkForUpdates(manual = false) {
     const worker = registration.waiting || registration.installing;
     if (worker) {
       worker.addEventListener('statechange', () => {
-        if (worker.state === 'activated') refreshFor(latest, userRequested);
+        if (worker.state === 'activated') refreshFor(latest, manual);
         if (worker.state === 'redundant') show('Update failed · Tap Check for Updates');
       });
     } else if (navigator.serviceWorker.controller) {
@@ -71,7 +69,7 @@ export async function checkForUpdates(manual = false) {
   } catch (error) {
     show('Update check unavailable · Offline game remains playable');
     console.warn('Pop Squadron update check:', error);
-  } finally { checking = false; userRequested = false; }
+  } finally { checking = false; }
 }
 function readWorkerBuild(worker) {
   return new Promise(resolve => {
