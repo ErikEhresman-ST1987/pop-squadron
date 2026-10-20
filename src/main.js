@@ -23,6 +23,11 @@ const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
 
 class FlightScene extends Phaser.Scene {
   constructor() { super('FlightScene'); }
+  preload() {
+    // The existing file was uploaded under 'assests'; retain that path for this test.
+    this.load.image('city-park-upload', import.meta.env.BASE_URL +
+      'assests/background/D12D1FB4-4F36-428F-B3AC-009D1DC63DF8-background.webp');
+  }
   create() {
     this.mission = getMission(selectedMissionId); // Selection is captured at mission start.
     this.rules = new MissionRules(this.mission);
@@ -41,16 +46,23 @@ class FlightScene extends Phaser.Scene {
     this.bossSpawned = false;
     this.nextReinforcementAt = Infinity;
     this.cameras.main.setBackgroundColor('#91bd7b');
-    // Generate a single seamless texture per sector; scroll it as one background.
+    // Test the uploaded City Park artwork in missions 1–3 only.
+    // Keep all other mission backgrounds and progression unchanged.
     const theme = sceneryTheme(this.mission.id);
-    const textureKey = 'scenery-' + theme;
-    if (!this.textures.exists(textureKey)) {
+    const customParkKey = 'city-park-upload';
+    const useCustomPark = theme === 'park-entrance' && this.textures.exists(customParkKey);
+    const textureKey = useCustomPark ? customParkKey : 'scenery-' + theme;
+    if (!useCustomPark && !this.textures.exists(textureKey)) {
       const canvasTexture = this.textures.createCanvas(textureKey, SCENERY_WIDTH, SCENERY_HEIGHT);
       drawScenery(canvasTexture.context, theme);
       canvasTexture.refresh();
     }
     this.scenery = this.add.tileSprite(0, 0, WIDTH, HEIGHT, textureKey)
       .setOrigin(0, 0).setDepth(-2);
+    if (useCustomPark) {
+      const image = this.textures.get(customParkKey).getSourceImage();
+      this.scenery.setTileScale(WIDTH / image.width);
+    }
     this.aircraft = this.add.container(WIDTH / 2, HEIGHT * .77).setDepth(4);
     const hull = this.add.graphics();
     hull.fillStyle(0x55c7ef).lineStyle(2, 0xe0f7ff);
