@@ -1,7 +1,8 @@
 // Renderer-independent projectile recipes. New weapons can reuse these patterns.
 const PATTERNS = Object.freeze({
   center: Object.freeze([0]),
-  wings: Object.freeze([-24, 24])
+  wings: Object.freeze([-24, 24]),
+  burst: Object.freeze([-9, 0, 9])
 });
 
 export function projectileSpecs(weapon, origin, targetId = null) {
@@ -14,7 +15,7 @@ export function projectileSpecs(weapon, origin, targetId = null) {
   return offsets.map(offset => Object.freeze({
     kind, x: origin.x + offset, y: origin.y + (kind === 'tracking' ? -18 : -25),
     targetId: kind === 'tracking' ? targetId : null,
-    speed: weapon.projectileSpeed, damage: weapon.damage,
+    speed: weapon.projectileSpeed, damage: weapon.damage, piercing: weapon.piercing === true,
     vx: 0, vy: -1, color: weapon.projectileColor,
     width: weapon.projectileWidth, height: weapon.projectileHeight,
     radius: weapon.projectileRadius
