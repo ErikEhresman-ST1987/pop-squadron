@@ -35,3 +35,15 @@ test('new primary weapons use distinct tested projectile recipes', () => {
   assert.deepEqual(burst.map(s => s.x), [171, 180, 189]);
   assert.equal(burst.every(s => s.damage === 1), true);
 });
+
+test('wing guns create distinct wide, rear, tracking and flak projectiles', () => {
+  const origin = { x: 180, y: 400 };
+  const wide = projectileSpecs(getWeapon('wide'), origin);
+  assert.deepEqual(wide.map(s => s.vx), [-0.42, 0, 0.42]);
+  const rear = projectileSpecs(getWeapon('rear'), origin);
+  assert.deepEqual(rear.map(s => s.vy), [1, 1]);
+  const turrets = projectileSpecs(getWeapon('turrets'), origin, 42);
+  assert.deepEqual(turrets.map(s => [s.kind, s.targetId]), [['tracking',42],['tracking',42]]);
+  const flak = projectileSpecs(getWeapon('flak'), origin);
+  assert.deepEqual(flak.map(s => s.splashRadius), [45,45]);
+});
