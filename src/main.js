@@ -25,6 +25,7 @@ class FlightScene extends Phaser.Scene {
   constructor() { super('FlightScene'); }
   preload() {
     this.load.image('player-jet', import.meta.env.BASE_URL + 'assests/aircraft/Jet-plane.webp');
+    this.load.image('balloon-basic', import.meta.env.BASE_URL + 'assests/ballons/pink-balloon.webp');
     // Preserve the existing uploaded asset directory spelling.
     this.load.image('city-park-upload', import.meta.env.BASE_URL +
       'assests/background/D12D1FB4-4F36-428F-B3AC-009D1DC63DF8-background.webp');
@@ -121,7 +122,11 @@ class FlightScene extends Phaser.Scene {
       const type = wave.types ? wave.types[i % wave.types.length] : 'basic';
       const state = createBalloonState(id, type);
       const stage = balloonAppearance(state);
-      const circle = this.add.circle(x,y,stage.radius,this.balloonColor(type,0)).setStrokeStyle(2,0xfff4d6).setDepth(2);
+      const circle = type === 'basic' && this.textures.exists('balloon-basic')
+        ? this.add.image(x, y, 'balloon-basic').setDisplaySize(stage.radius * 2, stage.radius * 2).setDepth(2)
+        : this.add.circle(x,y,stage.radius,this.balloonColor(type,0)).setStrokeStyle(2,0xfff4d6).setDepth(2);
+      // Keep the existing circle-radius collision interface for image sprites.
+      if (type === 'basic' && circle.type === 'Image') circle.radius = stage.radius;
       this.balloons.set(id,{id,state,circle,originX:x,age:0,speed:wave.speed,pattern:wave.pattern,phase:i*1.6});
     }
   }
