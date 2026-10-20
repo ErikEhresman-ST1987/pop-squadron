@@ -20,3 +20,18 @@ test('damage is configurable without changing the default hit', () => {
   assert.equal(hitBalloon(balloon, balloon.remainingHits).event, 'pop');
   assert.throws(() => hitBalloon(balloon, 0), RangeError);
 });
+
+test('new primary weapons use distinct tested projectile recipes', () => {
+  const origin = { x: 180, y: 400 };
+  const rapid = projectileSpecs(getWeapon('rapid'), origin);
+  assert.equal(rapid.length, 1);
+  assert.equal(rapid[0].speed, 480);
+  const heavy = projectileSpecs(getWeapon('heavy'), origin);
+  assert.equal(heavy[0].damage, 3);
+  assert.equal(hitBalloon(createBalloonState(3, 'durable'), heavy[0].damage).event, 'pop');
+  const piercing = projectileSpecs(getWeapon('piercing'), origin);
+  assert.equal(piercing[0].piercing, true);
+  const burst = projectileSpecs(getWeapon('burst'), origin);
+  assert.deepEqual(burst.map(s => s.x), [171, 180, 189]);
+  assert.equal(burst.every(s => s.damage === 1), true);
+});
