@@ -1,8 +1,9 @@
+import { WEAPON_REGISTRY } from './weaponRegistry.js';
 // Ownership is independent of equipment. Existing saves migrate to the
 // starting weapon only; wallet and mission progress are untouched.
 export const OWNERSHIP_KEY = 'pop-squadron-weapon-ownership-v1';
 export const STARTING_WEAPONS = Object.freeze(['forward']);
-const KNOWN = new Set(['forward', 'sides', 'tracking']);
+const KNOWN = new Set(WEAPON_REGISTRY.map(weapon => weapon.id));
 
 export function normalizeOwnership(value) {
   const owned = new Set(STARTING_WEAPONS);
