@@ -22,6 +22,9 @@ Run at the end of a sector increment, before significant releases, after a produ
 
 Severity guide: **Critical** = save loss or game unplayable; **High** = mission blocked, purchase/wallet error, or update interrupts gameplay; **Medium** = recoverable functional defect; **Low** = cosmetic or non-urgent upkeep.
 
+
+**Test Compatibility Check (every development increment):** When expanding an existing system (for example, adding missions or weapons), briefly inspect its related tests for assumptions that the expansion makes obsolete, especially hardcoded final-item limits. Update those tests alongside the feature while preserving all safety and regression protections. Continue using the existing GitHub Actions checks; no additional branching or deployment infrastructure is required.
+
 ## Maintenance register
 
 | ID | Date | Priority | Status | Item / scope | Evidence / next action |
