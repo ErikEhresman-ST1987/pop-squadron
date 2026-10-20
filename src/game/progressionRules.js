@@ -42,6 +42,6 @@ export function isMissionUnlocked(progress, missionId) {
 export function completeMission(progress, missionId, outcome) {
   const current = normalizeProgress(progress);
   if (outcome !== 'victory' || !isMissionUnlocked(current, missionId)) return current;
-  return { highestUnlocked: Math.min(MISSIONS.length,
-    Math.max(current.highestUnlocked, missionId + 1)) };
+  return { highestUnlocked: Math.max(current.highestUnlocked,
+    Math.min(MISSIONS.length, missionId + 1)) };
 }
