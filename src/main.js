@@ -6,7 +6,7 @@ import { getMission } from './game/missionDefinitions.js';
 import { SECTORS, getSector, getSectorForMission } from './game/sectorDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
 import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
-import { WEAPON_GROUPS, weaponsIn } from './game/weaponRegistry.js';
+import { WEAPON_CATEGORIES, WEAPON_GROUPS, weaponsIn } from './game/weaponRegistry.js';
 import { SLOTS, readLoadout, saveLoadout } from './game/loadoutRules.js';
 import { readOwnership } from './game/ownershipRules.js';
 import { SHOP_WEAPONS, purchaseWeapon } from './game/shopRules.js';
@@ -493,31 +493,72 @@ function closePurchase() {
   confirmation.hidden = true;
 }
 
+// Shop disclosures are separate from equipment disclosures.
+const expandedShopCategories = new Set(['primary']);
 function renderShop() {
   shopElement.replaceChildren();
-  for (const weapon of SHOP_WEAPONS) {
-    const owned = ownedWeapons.includes(weapon.id);
-    const row = document.createElement('div');
-    row.className = 'weapon-slot';
-    const details = document.createElement('div');
-    const title = document.createElement('strong');
-    title.textContent = weapon.name;
-    const price = document.createElement('span');
-    price.textContent = owned ? 'Permanently owned' : 'Price: $' + weapon.price;
-    details.append(title, price);
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'equipment-toggle';
-    button.disabled = owned || walletBalance < weapon.price;
-    button.textContent = owned ? 'Owned' : walletBalance < weapon.price ? 'Not enough funds' : 'Buy · $' + weapon.price;
-    button.addEventListener('click', () => {
-      if (ownedWeapons.includes(weapon.id) || walletBalance < weapon.price) return;
-      pendingPurchase = weapon.id;
-      purchaseDetails.textContent = 'Purchase ' + weapon.name + ' for $' + weapon.price + '? It will remain yours permanently. Equip it separately.';
-      confirmation.hidden = false;
+  const highestSectorUnlocked = bossDefeated ? 2 : 1;
+  for (const category of WEAPON_CATEGORIES) {
+    const section = document.createElement('section');
+    section.className = 'weapon-category';
+    const heading = document.createElement('button');
+    heading.type = 'button';
+    heading.className = 'weapon-category-toggle';
+    const expanded = expandedShopCategories.has(category.id);
+    heading.textContent = (expanded ? '▾ ' : '▸ ') + category.label;
+    heading.setAttribute('aria-expanded', String(expanded));
+    heading.addEventListener('click', () => {
+      if (expandedShopCategories.has(category.id)) expandedShopCategories.delete(category.id);
+      else expandedShopCategories.add(category.id);
+      renderShop();
     });
-    row.append(details, button);
-    shopElement.append(row);
+    section.append(heading);
+    if (expanded) {
+      for (const group of WEAPON_GROUPS) {
+        const label = document.createElement('h4');
+        label.className = 'weapon-group-heading';
+        label.textContent = group.label;
+        section.append(label);
+        const weapons = weaponsIn(category.id, group.id);
+        if (!weapons.length) {
+          const empty = document.createElement('p');
+          empty.className = 'hangar-note';
+          empty.textContent = 'No weapons available yet';
+          section.append(empty);
+        }
+        for (const weapon of weapons) {
+          const owned = ownedWeapons.includes(weapon.id);
+          const locked = weapon.unlockSector > highestSectorUnlocked;
+          const row = document.createElement('div');
+          row.className = 'weapon-slot';
+          const details = document.createElement('div');
+          const title = document.createElement('strong');
+          title.textContent = weapon.name;
+          const description = document.createElement('span');
+          description.textContent = weapon.description;
+          const price = document.createElement('span');
+          price.textContent = owned ? 'Permanently owned' :
+            'Price: $' + weapon.price + (locked ? ' · Unlocks in Sector ' + weapon.unlockSector : '');
+          details.append(title, description, price);
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'equipment-toggle';
+          button.disabled = owned || locked || weapon.price === 0 || walletBalance < weapon.price;
+          button.textContent = owned ? 'Owned' : locked ? 'Locked' :
+            weapon.price === 0 ? 'Starter' :
+            walletBalance < weapon.price ? 'Not enough funds' : 'Buy · $' + weapon.price;
+          button.addEventListener('click', () => {
+            if (ownedWeapons.includes(weapon.id) || locked || weapon.price === 0 || walletBalance < weapon.price) return;
+            pendingPurchase = weapon.id;
+            purchaseDetails.textContent = 'Purchase ' + weapon.name + ' for $' + weapon.price + '? It will remain yours permanently. Equip it separately.';
+            confirmation.hidden = false;
+          });
+          row.append(details, button);
+          section.append(row);
+        }
+      }
+    }
+    shopElement.append(section);
   }
 }
 document.getElementById('cancel-purchase').addEventListener('click', closePurchase);
