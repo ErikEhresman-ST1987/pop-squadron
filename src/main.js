@@ -151,7 +151,7 @@ class FlightScene extends Phaser.Scene {
         ? this.add.circle(spec.x, spec.y, spec.radius, spec.color).setDepth(3)
         : this.add.rectangle(spec.x, spec.y, spec.width, spec.height, spec.color).setDepth(3);
       this.shots.push({ shape, kind: spec.kind, targetId: spec.targetId,
-        speed: spec.speed, damage: spec.damage, vx: spec.vx, vy: spec.vy, lifetime: 0 });
+        speed: spec.speed, damage: spec.damage, piercing: spec.piercing, hitIds: new Set(), vx: spec.vx, vy: spec.vy, lifetime: 0 });
     }
   }
   removeShot(index) {
@@ -296,7 +296,7 @@ class FlightScene extends Phaser.Scene {
         const dx = target.circle.x - shot.shape.x;
         const dy = target.circle.y - shot.shape.y;
         const distance = Math.hypot(dx, dy);
-        const step = 320 * dt;
+        const step = shot.speed * dt;
         if (distance > 0) {
           shot.shape.x += dx / distance * Math.min(step, distance);
           shot.shape.y += dy / distance * Math.min(step, distance);
