@@ -491,6 +491,7 @@ let pendingPurchase = null;
 function closePurchase() {
   pendingPurchase = null;
   confirmation.hidden = true;
+  shopElement.after(confirmation);
 }
 
 // Shop disclosures are separate from equipment disclosures.
