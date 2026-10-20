@@ -10,7 +10,8 @@ const storage = () => {
 };
 
 test('approved weapon prices are fixed and starter is not sold', () => {
-  assert.deepEqual(SHOP_WEAPONS.map(({id, price}) => [id, price]), [['sides', 500], ['tracking', 1000]]);
+  assert.deepEqual(SHOP_WEAPONS.filter(w => ['sides','tracking'].includes(w.id)).map(({id, price}) => [id, price]), [['sides', 500], ['tracking', 1000]]);
+  assert.deepEqual(SHOP_WEAPONS.filter(w => w.slot === 'primary').map(({id, price}) => [id, price]), [['rapid', 750], ['heavy', 1200], ['piercing', 2000], ['burst', 2500]]);
 });
 
 test('purchasing deducts once, permanently unlocks, and does not auto-equip', () => {
