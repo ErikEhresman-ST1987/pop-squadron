@@ -36,3 +36,16 @@ test('new worker refreshes visible legacy clients without clearing saved data', 
   assert.match(source, /client\.navigate\(client\.url\)/);
   assert.doesNotMatch(source, /localStorage\.clear|caches\.delete/);
 });
+
+test('release probe bypasses service worker cache and reports worker build identity', async () => {
+  const script = await readFile(new URL('../scripts/prepare-offline.mjs', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../src/offline.js', import.meta.url), 'utf8');
+  assert.match(script, /release\\.json/);
+  assert.match(script, /if \\(url\\.pathname === SCOPE \\+ 'release\\.json'\\) return/);
+  assert.match(script, /BUILD_VERSION/);
+  assert.match(source, /updateViaCache: 'none'/);
+  assert.match(source, /cache: 'no-store'/);
+  assert.match(source, /readWorkerBuild/);
+  assert.match(source, /visibilitychange/);
+  assert.match(source, /check-updates/);
+});
