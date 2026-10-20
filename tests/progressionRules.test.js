@@ -85,7 +85,11 @@ test('Zoo missions 11–13 unlock sequentially and replay cannot skip ahead', ()
   assert.deepEqual(thirteen, { highestUnlocked: 13 });
   assert.equal(isMissionUnlocked(thirteen, 13), true);
   assert.equal(isMissionUnlocked(thirteen, 14), false);
-  assert.deepEqual(completeMission(thirteen, 13, 'victory'), thirteen);
+  const fourteen = completeMission(thirteen, 13, 'victory');
+  assert.deepEqual(fourteen, { highestUnlocked: 14 });
+  assert.equal(isMissionUnlocked(fourteen, 14), true);
+  assert.equal(isMissionUnlocked(fourteen, 15), false);
+  assert.deepEqual(completeMission(fourteen, 11, 'victory'), fourteen);
   const storage = new Map();
   const api = { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v) };
   assert.equal(saveProgress(api, thirteen), true);
@@ -99,4 +103,16 @@ test('temporary removal of authored missions never erases saved unlocks', () => 
   assert.equal(saveProgress(storage, readProgress(storage)), true);
   assert.deepEqual(JSON.parse(data.get(PROGRESS_KEY)), { highestUnlocked: 20 });
   assert.deepEqual(completeMission(readProgress(storage), 1, 'victory'), { highestUnlocked: 20 });
+});
+
+
+test('Zoo missions 14–16 unlock sequentially without skipping or exceeding authored missions', () => {
+  const fourteen = { highestUnlocked: 14 };
+  assert.deepEqual(completeMission(fourteen, 15, 'victory'), fourteen);
+  const fifteen = completeMission(fourteen, 14, 'victory');
+  assert.deepEqual(fifteen, { highestUnlocked: 15 });
+  const sixteen = completeMission(fifteen, 15, 'victory');
+  assert.deepEqual(sixteen, { highestUnlocked: 16 });
+  assert.deepEqual(completeMission(sixteen, 16, 'victory'), sixteen);
+  assert.deepEqual(completeMission(sixteen, 14, 'victory'), sixteen);
 });
