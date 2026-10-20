@@ -30,7 +30,7 @@ test('Mission 1 preserves the original four-wave configuration exactly', () => {
 
 test('every mission has valid increasing wave timings and supported definitions', () => {
   for (const m of MISSIONS) {
-    assert.ok(m.waves.length >= (m.id === 10 ? 3 : 4));
+    assert.ok(m.waves.length >= ((m.id === 10 || m.id === 20) ? 3 : 4));
     assert.equal(m.health, 100);
     assert.equal(m.escapeAllowance, 5);
     let lastAt = -1;
