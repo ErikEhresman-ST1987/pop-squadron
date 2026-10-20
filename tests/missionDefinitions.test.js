@@ -4,13 +4,14 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('sixteen ordered authored missions with stable lookup', () => {
+test('nineteen ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
     [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss'], [10, 'Boss'],
     [11, 'Moderate'], [12, 'Fast'], [13, 'Armored'],
-    [14, 'Tactical'], [15, 'Intense'], [16, 'Challenging']
+    [14, 'Tactical'], [15, 'Intense'], [16, 'Challenging'],
+    [17, 'Tactical'], [18, 'Intense'], [19, 'Pre-Boss']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -103,7 +104,7 @@ test('Zoo Missions 2 and 3 increase pressure with distinct speed and armor profi
     assert.equal(mission.health, 100);
     assert.equal(mission.collisionDamage, 20);
   }
-  assert.equal(getMission(17), null);
+  assert.equal(getMission(20), null);
 });
 
 
@@ -123,4 +124,24 @@ test('Zoo Missions 14–16 have distinct escalating wave profiles and preserve c
     assert.ok(mission.waves.some(wave => wave.pattern === 'formation'));
     assert.ok(mission.waves.every(wave => wave.types.every(type => BALLOON_TYPES[type])));
   }
+});
+
+
+test('Zoo Missions 17–19 escalate crowd pressure and speed without changing combat rules', () => {
+  const [night, feeding, uprising, escape] = [16, 17, 18, 19].map(getMission);
+  assert.deepEqual([feeding.name, uprising.name, escape.name], [
+    'Mission 17: Feeding Frenzy', 'Mission 18: Animal Uprising', 'Mission 19: The Great Escape'
+  ]);
+  const total = m => m.waves.reduce((sum, wave) => sum + wave.count, 0);
+  assert.ok(total(night) < total(feeding) && total(feeding) < total(uprising) && total(uprising) < total(escape));
+  assert.ok(uprising.waves[1].at - uprising.waves[0].at < feeding.waves[1].at - feeding.waves[0].at);
+  assert.ok(escape.waves.length > uprising.waves.length);
+  assert.ok(escape.waves.at(-1).speed > uprising.waves.at(-1).speed);
+  for (const mission of [feeding, uprising, escape]) {
+    assert.deepEqual([mission.health, mission.collisionDamage, mission.escapeAllowance], [100, 20, 5]);
+    assert.ok(mission.waves.some(w => w.pattern === 'drift'));
+    assert.ok(mission.waves.some(w => w.pattern === 'formation'));
+    assert.ok(mission.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
+  }
+  assert.equal(getMission(20), null); // Zoo boss is reserved for a separate increment.
 });
