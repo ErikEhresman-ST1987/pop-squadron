@@ -47,3 +47,17 @@ test('wing guns create distinct wide, rear, tracking and flak projectiles', () =
   const flak = projectileSpecs(getWeapon('flak'), origin);
   assert.deepEqual(flak.map(s => s.splashRadius), [45,45]);
 });
+
+test('missile recipes distinguish swarm, heavy, cluster and interceptor', () => {
+  const origin = { x: 180, y: 400 };
+  const swarm = projectileSpecs(getWeapon('swarm'), origin, 8);
+  assert.deepEqual(swarm.map(s => s.x), [158, 180, 202]);
+  assert.equal(swarm.every(s => s.kind === 'tracking' && s.targetId === 8), true);
+  const heavy = projectileSpecs(getWeapon('heavy-missile'), origin, 8);
+  assert.equal(heavy[0].damage, 4);
+  const cluster = projectileSpecs(getWeapon('cluster'), origin, 8);
+  assert.equal(cluster[0].splashRadius, 75);
+  const interceptor = projectileSpecs(getWeapon('interceptor'), origin, 8);
+  assert.equal(interceptor[0].speed, 600);
+  assert.equal(interceptor[0].damage, 1);
+});
