@@ -16,7 +16,7 @@ export function projectileSpecs(weapon, origin, targetId = null) {
   if (!offsets || offsets.length !== weapon.projectiles)
     throw new RangeError('Unsupported projectile pattern/count');
   return offsets.map((offset, index) => Object.freeze({
-    kind, x: origin.x + offset, y: origin.y + (kind === 'tracking' ? -18 : -25),
+    kind, x: origin.x + offset, y: origin.y + (weapon.projectilePattern === 'rear' ? 15 : kind === 'tracking' ? -18 : -25),
     targetId: kind === 'tracking' ? targetId : null,
     speed: weapon.projectileSpeed, damage: weapon.damage, piercing: weapon.piercing === true,
     splashRadius: weapon.splashRadius ?? 0,
