@@ -617,6 +617,8 @@ function showHangar() {
   renderMissions();
   renderWallet();
   renderShop();
+  // Apply an already-installed update only after the mission is safely closed.
+  window.dispatchEvent(new Event('pop-squadron-hangar'));
 }
 launch.addEventListener('click', () => {
   if (!getMission(selectedMissionId) || !isMissionUnlocked(progress, selectedMissionId) ||
