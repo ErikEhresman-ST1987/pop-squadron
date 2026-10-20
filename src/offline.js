@@ -5,6 +5,17 @@ const refreshKey = 'pop-squadron-refreshed-build';
 let registration;
 let checking = false;
 let refreshing = false;
+let pendingRefresh = null;
+function missionActive() {
+  const game = document.getElementById('game');
+  return Boolean(game && !game.hidden);
+}
+function applyPendingRefresh() {
+  if (!pendingRefresh || missionActive()) return;
+  const { version, manual } = pendingRefresh;
+  pendingRefresh = null;
+  refreshFor(version, manual);
+}
 // An automatic retry is limited per release, but manual retries are never blocked.
 
 function show(message) {
@@ -14,6 +25,11 @@ function show(message) {
 function currentVersion() { return build.slice(0, 9); }
 function refreshFor(version, manual = false) {
   if (refreshing || !navigator.onLine || !version || version === build) return;
+  if (missionActive()) {
+    pendingRefresh = { version, manual };
+    show('Update ready · Will install when you return to hangar');
+    return;
+  }
   try {
     // The stored value limits automatic navigation loops, not explicit user retries.
     if (!manual && sessionStorage.getItem(refreshKey) === version) {
@@ -81,6 +97,7 @@ function readWorkerBuild(worker) {
   });
 }
 export async function setupOffline() {
+  window.addEventListener('pop-squadron-hangar', applyPendingRefresh);
   const button = document.getElementById('check-updates');
   if (button) button.addEventListener('click', () => { void checkForUpdates(true); });
   if (!('serviceWorker' in navigator)) {
