@@ -1,7 +1,7 @@
 name: Deploy Pop Squadron
 on:
   push:
-    branches: [main]
+    branches: [feature/city-park-background]
   workflow_dispatch:
 permissions:
   contents: read
