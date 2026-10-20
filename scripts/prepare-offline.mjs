@@ -28,6 +28,8 @@ const cache = 'pop-squadron-static-' + hash.digest('hex').slice(0, 16);
 const source = `const CACHE = ${JSON.stringify(cache)};
 const ASSETS = ${JSON.stringify(urls)};
 const SCOPE = '/pop-squadron/';
+// Keep the active cache immutable for the lifetime of its worker. New workers
+// activate with their own cache; old clients may still request old asset URLs.
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
@@ -38,7 +40,9 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter(name => name.startsWith('pop-squadron-static-') && name !== CACHE).map(name => caches.delete(name)));
+    // Do not delete old bundles during activation: existing tabs can still
+    // be running an older build and need its hashed JavaScript/CSS assets.
+    // A later maintenance release can prune caches after clients have closed.
     await self.clients.claim();
   })());
 });
@@ -56,7 +60,19 @@ self.addEventListener('fetch', event => {
       if (page) return page;
       return fetch(request);
     }
-    return await cache.match(request) || fetch(request);
+    // A navigation can arrive from a previous worker while new assets are
+    // deploying. Never cache-mix a new HTML document with an old JS bundle.
+    // Hashed assets are resolved from their own build's cache if needed.
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    const names = await caches.keys();
+    for (const name of names) {
+      if (!name.startsWith('pop-squadron-static-') || name === CACHE) continue;
+      const oldCache = await caches.open(name);
+      const oldAsset = await oldCache.match(request);
+      if (oldAsset) return oldAsset;
+    }
+    return fetch(request);
   })());
 });`;
 await writeFile(join(root, 'sw.js'), source + '\n');
