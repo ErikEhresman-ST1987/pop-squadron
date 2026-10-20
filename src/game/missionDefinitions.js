@@ -161,6 +161,11 @@ export const MISSIONS = Object.freeze([
     wave(39200, 'drift', 21, 182, ['durable','layered','basic','durable']),
     wave(46800, 'formation', 22, 187, ['basic','durable','layered','basic']),
     wave(54400, 'drift', 23, 192, ['layered','basic','durable'])
+  ]),
+  mission(20, 'Mission 20: The Mutant Menagerie', 'Boss', [
+    wave(1200, 'formation', 9, 120, ['basic', 'durable', 'layered']),
+    wave(11200, 'drift', 10, 133, ['layered', 'basic', 'durable']),
+    wave(21200, 'formation', 11, 142, ['durable', 'layered', 'basic'])
   ])
 ]);
 
