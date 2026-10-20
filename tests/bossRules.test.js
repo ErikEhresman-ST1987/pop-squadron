@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CITY_PARK_BOSS, bossPhase, bossHit, bossReward, bossAttackPosition } from '../src/game/bossRules.js';
+import { CITY_PARK_BOSS, bossPhase, bossHit, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval } from '../src/game/bossRules.js';
 import { getMission } from '../src/game/missionDefinitions.js';
 import { completeMission } from '../src/game/progressionRules.js';
 
@@ -37,4 +37,19 @@ test('boss dive locks its target and returns to patrol height', () => {
   const retreat = bossAttackPosition(config.patrolMs + config.warningMs + config.diveMs + config.retreatMs / 2, 20, attack);
   assert.equal(retreat.phase, 'retreat');
   assert.ok(retreat.y < config.diveBottomY);
+});
+
+
+test('Zoo boss transitions through three phases and stays in upper/middle battlefield', () => {
+  assert.equal(zooBossPhase(180), 'awakens');
+  assert.equal(zooBossPhase(117), 'going-wild');
+  assert.equal(zooBossPhase(54), 'last-gasp');
+  assert.equal(zooBossPhase(0), 'defeated');
+  assert.ok(zooBossRadius(54) < zooBossRadius(180));
+  for (const health of [180, 100, 30]) for (let time = 0; time < 30000; time += 333) {
+    const { x, y } = zooBossPosition(time, health);
+    assert.ok(x >= 55 && x <= 305 && y >= 70 && y <= 225);
+  }
+  assert.ok(zooEscortInterval('last-gasp') < zooEscortInterval('awakens'));
+  assert.ok(ZOO_BOSS.enterAfterMs > getMission(20).waves.at(-1).at);
 });
