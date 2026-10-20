@@ -90,6 +90,23 @@ export const MISSIONS = Object.freeze([
     wave(28200, 'formation', 10, 119, ['durable', 'basic', 'layered']),
     wave(43200, 'drift', 11, 125, ['layered', 'basic', 'durable']),
     wave(58200, 'formation', 12, 132, ['basic', 'durable', 'layered'])
+  ]),
+  // Sector 2 — Zoo: two distinct follow-up encounters. Existing balloon
+  // mechanics are retained; animal-themed art is a separate design increment.
+  mission(12, 'Mission 12: Aviary Rush', 'Fast', [
+    wave(1200, 'drift', 9, 112, ['basic', 'durable', 'basic']),
+    wave(12000, 'formation', 10, 122, ['basic', 'layered', 'durable']),
+    wave(23000, 'drift', 11, 130, ['basic', 'durable', 'layered']),
+    wave(34000, 'formation', 12, 137, ['layered', 'basic', 'durable']),
+    wave(45000, 'drift', 13, 143, ['basic', 'durable', 'layered'])
+  ]),
+  mission(13, 'Mission 13: Reptile House', 'Armored', [
+    wave(1200, 'formation', 10, 110, ['durable', 'layered', 'basic']),
+    wave(13300, 'drift', 11, 120, ['layered', 'durable', 'basic']),
+    wave(25400, 'formation', 12, 128, ['durable', 'layered', 'durable', 'basic']),
+    wave(37500, 'drift', 13, 134, ['layered', 'durable', 'basic']),
+    wave(49600, 'formation', 14, 140, ['durable', 'layered', 'durable']),
+    wave(61700, 'drift', 15, 146, ['layered', 'durable', 'basic'])
   ])
 ]);
 
