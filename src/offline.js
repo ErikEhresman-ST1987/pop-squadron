@@ -23,8 +23,22 @@ function show(message) {
   if (element) element.textContent = message;
 }
 function currentVersion() { return build.slice(0, 9); }
-function refreshFor(version, manual = false) {
+async function refreshFor(version, manual = false) {
   if (refreshing || !navigator.onLine || !version || version === build) return;
+  if (missionActive()) {
+    pendingRefresh = { version, manual };
+    show('Update ready · Will install when you return to hangar');
+    return;
+  }
+  // Activation can precede controllerchange. Reloading before the new worker
+  // controls this page simply returns the previous cached HTML on iOS.
+  const controller = navigator.serviceWorker.controller;
+  const controllingBuild = controller ? await readWorkerBuild(controller) : null;
+  if (controllingBuild !== version) {
+    pendingRefresh = { version, manual };
+    show('Update installing · Waiting for new version to take control');
+    return;
+  }
   if (missionActive()) {
     pendingRefresh = { version, manual };
     show('Update ready · Will install when you return to hangar');
@@ -73,13 +87,13 @@ export async function checkForUpdates(manual = false) {
     const worker = registration.waiting || registration.installing;
     if (worker) {
       worker.addEventListener('statechange', () => {
-        if (worker.state === 'activated') refreshFor(latest, manual);
+        if (worker.state === 'activated') void refreshFor(latest, manual);
         if (worker.state === 'redundant') show('Update failed · Tap Check for Updates');
       });
     } else if (navigator.serviceWorker.controller) {
       // update() may already have activated the new worker.
       const activeBuild = await readWorkerBuild(navigator.serviceWorker.controller);
-      if (activeBuild === latest) refreshFor(latest, manual);
+      if (activeBuild === latest) void refreshFor(latest, manual);
       else show('New version found · Retry Check for Updates shortly');
     } else show('Update installing · Reopen when complete');
   } catch (error) {
@@ -112,7 +126,10 @@ export async function setupOffline() {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (!navigator.onLine || !navigator.serviceWorker.controller) return;
       void readWorkerBuild(navigator.serviceWorker.controller).then(version => {
-        if (version && version !== build) refreshFor(version);
+        if (!version || version === build) return;
+        const manual = pendingRefresh?.version === version && pendingRefresh.manual;
+        pendingRefresh = null;
+        void refreshFor(version, manual);
       });
     });
     const worker = registration.installing || registration.waiting || registration.active;
