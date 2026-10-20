@@ -18,9 +18,10 @@ export function balloonAppearance(balloon) {
 
 // Returns a new state. No in-place mutations, so repeated hits on a resolved
 // balloon cannot generate additional pops or layer removals.
-export function hitBalloon(balloon) {
+export function hitBalloon(balloon, damage = 1) {
+  if (!Number.isSafeInteger(damage) || damage < 1) throw new RangeError('Damage must be a positive integer');
   if (balloon.resolved) return { state: balloon, event: 'ignored' };
-  const remainingHits = balloon.remainingHits - 1;
+  const remainingHits = balloon.remainingHits - damage;
   if (remainingHits <= 0) {
     return {
       state: Object.freeze({ ...balloon, remainingHits: 0, resolved: true }),
