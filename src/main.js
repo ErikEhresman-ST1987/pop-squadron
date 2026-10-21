@@ -6,7 +6,7 @@ import { MissionRules } from './game/missionRules.js';
 import { getMission } from './game/missionDefinitions.js';
 import { SECTORS, getSector, getSectorForMission } from './game/sectorDefinitions.js';
 import { createBalloonState, hitBalloon, removeBalloon, balloonAppearance } from './game/balloonRules.js';
-import { initialWeaponState, advanceWeapons } from './game/weaponRules.js';
+import { initialWeaponState } from './game/weaponRules.js';
 import { projectileSpecs, moveProjectile } from './game/projectileRules.js';
 import { getWeapon } from './game/weaponRegistry.js';
 import { WEAPON_CATEGORIES, WEAPON_GROUPS, weaponsIn } from './game/weaponRegistry.js';
@@ -61,6 +61,7 @@ class FlightScene extends Phaser.Scene {
     this.shots = [];
     this.enemyShots = [];
     this.weaponState = initialWeaponState();
+    this.fireRequested = false;
     // Snapshot equipment on mission start; hangar edits apply only to the next mission.
     this.equippedWeaponIds = SLOTS.map(slot => loadout[slot.id]).filter(Boolean);
     this.invulnerableUntil = 0;
@@ -94,14 +95,27 @@ class FlightScene extends Phaser.Scene {
     // Keep the aircraft container as the movement, weapon and collision anchor.
     const jet = this.add.image(0, 0, 'player-jet');
     const jetSource = this.textures.get('player-jet').getSourceImage();
-    jet.setScale(Math.min(56 / jetSource.width, 56 / jetSource.height));
+    jet.setScale(Math.min(64 / jetSource.width, 64 / jetSource.height));
     this.aircraft.add(jet);
     this.hud = this.add.text(12, 10, '', { fontFamily:'system-ui',fontSize:'15px',color:'#f3f7ff',backgroundColor:'#091522aa',padding:{x:7,y:5} }).setDepth(8);
-    this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
+    this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE');
+    // Dedicated lower-right fire control; separate touches can steer and fire.
+    this.fireButton = this.add.circle(WIDTH - 49, HEIGHT - 58, 35, 0xd65e48, 0.92)
+      .setStrokeStyle(3, 0xffe5ad).setDepth(12).setInteractive();
+    this.fireLabel = this.add.text(WIDTH - 49, HEIGHT - 58, 'FIRE', {
+      fontFamily: 'system-ui', fontSize: '17px', fontStyle: 'bold', color: '#ffffff'
+    }).setOrigin(0.5).setDepth(13);
+    this.fireButton.on('pointerdown', () => {
+      if (!this.finished) {
+        this.fireRequested = true;
+        this.fireButton.setFillStyle(0xffa46d);
+      }
+    });
+    this.input.on('pointerup', () => this.fireButton.setFillStyle(0xd65e48, 0.92));
     this.dragPointer = null;
     this.previousPointer = null;
     this.input.on('pointerdown', pointer => {
-      if (this.finished || this.dragPointer !== null) return;
+      if (this.finished || this.dragPointer !== null || Math.hypot(pointer.x - (WIDTH - 49), pointer.y - (HEIGHT - 58)) < 45) return;
       this.dragPointer = pointer.id;
       this.previousPointer = {x:pointer.x,y:pointer.y};
     });
@@ -116,11 +130,11 @@ class FlightScene extends Phaser.Scene {
     };
     this.input.on('pointerup', release);
     this.input.on('pointerupoutside', release);
-    this.blurHandler = () => {this.dragPointer=null;this.previousPointer=null;};
+    this.blurHandler = () => {this.dragPointer=null;this.previousPointer=null;this.fireRequested=false;};
     window.addEventListener('blur', this.blurHandler);
     this.events.once('shutdown', () => window.removeEventListener('blur', this.blurHandler));
     this.updateHud();
-    document.getElementById('status').textContent = this.mission.name + ' · Automatic fire enabled';
+    document.getElementById('status').textContent = this.mission.name + ' · Tap FIRE to shoot';
     const replay = document.getElementById('replay');
     replay.hidden = true;
     replay.onclick = () => this.scene.restart();
@@ -450,13 +464,31 @@ class FlightScene extends Phaser.Scene {
     if (this.boss) this.fireBossProjectiles();
     this.advanceBossProjectiles(dt);
     if (this.finished) return;
-    const firing = advanceWeapons(this.weaponState, delta,
-      { x: this.aircraft.x, y: this.aircraft.y },
-      [...this.balloons.values()].map(balloon => ({ id: balloon.id, x: balloon.circle.x, y: balloon.circle.y, resolved: balloon.state.resolved }))
-        .concat(this.boss ? [{ id: 'boss', x: this.boss.shape.x, y: this.boss.shape.y, resolved: false }] : []),
-      this.equippedWeaponIds);
-    this.weaponState = firing.state;
-    for (const volley of firing.volleys) this.fireVolley(volley);
+    // Keep per-weapon cooldowns charged until the player taps; do not auto-fire.
+    const readyState = {};
+    for (const id of this.equippedWeaponIds) {
+      const weapon = getWeapon(id);
+      if (weapon) readyState[id] = Math.min(weapon.intervalMs, (this.weaponState[id] ?? 0) + delta);
+    }
+    const requested = this.fireRequested || Phaser.Input.Keyboard.JustDown(this.keys.SPACE);
+    this.fireRequested = false;
+    if (requested) {
+      const targets = [...this.balloons.values()].map(balloon => ({
+        id: balloon.id, x: balloon.circle.x, y: balloon.circle.y, resolved: balloon.state.resolved
+      })).concat(this.boss ? [{ id: 'boss', x: this.boss.shape.x, y: this.boss.shape.y, resolved: false }] : []);
+      for (const id of this.equippedWeaponIds) {
+        const weapon = getWeapon(id);
+        if (!weapon || readyState[id] < weapon.intervalMs) continue;
+        const target = weapon.targeting === 'nearest'
+          ? targets.filter(t => !t.resolved && Math.hypot(t.x - this.aircraft.x, t.y - this.aircraft.y) <= (weapon.range ?? Infinity))
+            .sort((a, b) => Math.hypot(a.x - this.aircraft.x, a.y - this.aircraft.y) - Math.hypot(b.x - this.aircraft.x, b.y - this.aircraft.y))[0]
+          : null;
+        if (weapon.targeting === 'nearest' && !target) continue;
+        this.fireVolley({ weaponId: id, targetId: target?.id ?? null });
+        readyState[id] = 0;
+      }
+    }
+    this.weaponState = readyState;
     for (let i=this.shots.length-1;i>=0;i--) {
       const shot=this.shots[i];
       shot.lifetime += dt;
