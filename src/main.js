@@ -24,7 +24,7 @@ const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
 class FlightScene extends Phaser.Scene {
   constructor() { super('FlightScene'); }
   preload() {
-    this.load.image('player-jet', import.meta.env.BASE_URL + 'assests/aircraft/Jet-plane.webp');
+    this.load.image('player-jet', import.meta.env.BASE_URL + 'assests/aircraft/jet-pack-Jim.webp');
     this.load.image('balloon-basic', import.meta.env.BASE_URL + 'assests/ballons/pink-balloon.webp');
     this.load.image('balloon-durable-3', import.meta.env.BASE_URL + 'assests/ballons/durable-undamaged.webp');
     this.load.image('balloon-durable-2', import.meta.env.BASE_URL + 'assests/ballons/durable-damaged-once.webp');
