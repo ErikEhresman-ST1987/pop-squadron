@@ -59,6 +59,7 @@ class FlightScene extends Phaser.Scene {
     this.nextId = 1;
     this.balloons = new Map();
     this.shots = [];
+    this.enemyShots = [];
     this.weaponState = initialWeaponState();
     // Snapshot equipment on mission start; hangar edits apply only to the next mission.
     this.equippedWeaponIds = SLOTS.map(slot => loadout[slot.id]).filter(Boolean);
@@ -150,7 +151,7 @@ class FlightScene extends Phaser.Scene {
       ? this.add.image(WIDTH / 2, 105, bossTexture).setDisplaySize(config.radius * 2, config.radius * 2).setDepth(3)
       : this.add.circle(WIDTH / 2, 105, config.radius, zoo ? 0xb4db73 : 0xf27ab9)
         .setStrokeStyle(5, 0xffe59b).setDepth(3);
-    this.boss = { shape, health: config.health, age: 0, attack: { startX: WIDTH / 2, targetX: WIDTH / 2 }, lastPhase: 'patrol' };
+    this.boss = { shape, health: config.health, age: 0, nextShotAt: this.elapsed + (zoo ? 2600 : 3500), attack: { startX: WIDTH / 2, targetX: WIDTH / 2 }, lastPhase: 'patrol' };
     this.bossWarning = this.add.text(WIDTH / 2, 190, 'DIVE INCOMING!', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#ffdd76' }).setOrigin(.5).setDepth(9).setVisible(false);
     this.bossLabel = this.add.text(WIDTH / 2, 35, zoo ? 'THE MUTANT MENAGERIE' : 'GIANT PARTY BALLOON',
       { fontFamily: 'system-ui', fontSize: '15px', color: '#fff0c9' }).setOrigin(.5).setDepth(9);
@@ -180,6 +181,8 @@ class FlightScene extends Phaser.Scene {
       this.nextReinforcementAt = this.elapsed + 2500;
     if (this.boss.health === 0) {
       this.boss.shape.destroy();
+      for (const shot of this.enemyShots) shot.shape.destroy();
+      this.enemyShots = [];
       this.bossBar.destroy();
       this.bossLabel.destroy();
       this.bossWarning.destroy();
@@ -233,6 +236,47 @@ class FlightScene extends Phaser.Scene {
         speed: spec.speed, damage: spec.damage, piercing: spec.piercing, splashRadius: spec.splashRadius, hitIds: new Set(), vx: spec.vx, vy: spec.vy, lifetime: 0 });
     }
   }
+  fireBossProjectiles() {
+    if (!this.boss || this.elapsed < this.boss.nextShotAt) return;
+    const zoo = this.mission.id === 20;
+    const healthFraction = this.boss.health / (zoo ? ZOO_BOSS.health : CITY_PARK_BOSS.health);
+    const aggressive = healthFraction <= 0.5;
+    const count = zoo ? (aggressive ? 5 : 3) : (aggressive ? 3 : 1);
+    const speed = zoo ? (aggressive ? 175 : 145) : (aggressive ? 145 : 125);
+    const dx = this.aircraft.x - this.boss.shape.x;
+    const dy = this.aircraft.y - this.boss.shape.y;
+    const center = Math.atan2(dy, dx);
+    const spread = zoo ? 0.24 : 0.27;
+    for (let i = 0; i < count; i++) {
+      const angle = center + (i - (count - 1) / 2) * spread;
+      const shape = this.add.circle(this.boss.shape.x, this.boss.shape.y + 22,
+        zoo ? 5 : 6, zoo ? 0xa7f4a2 : 0xffd16d).setStrokeStyle(2, 0x49364b).setDepth(4);
+      this.enemyShots.push({ shape, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed });
+    }
+    this.boss.nextShotAt = this.elapsed + (zoo ? (aggressive ? 2300 : 3400) : (aggressive ? 2800 : 4200));
+  }
+  advanceBossProjectiles(dt) {
+    for (let i = this.enemyShots.length - 1; i >= 0; i--) {
+      const shot = this.enemyShots[i];
+      shot.shape.x += shot.vx * dt;
+      shot.shape.y += shot.vy * dt;
+      const offscreen = shot.shape.x < -12 || shot.shape.x > WIDTH + 12 ||
+        shot.shape.y < -12 || shot.shape.y > HEIGHT + 12;
+      const collision = !offscreen && this.elapsed >= this.invulnerableUntil &&
+        Math.hypot(shot.shape.x - this.aircraft.x, shot.shape.y - this.aircraft.y) < 17;
+      if (offscreen || collision) {
+        shot.shape.destroy();
+        this.enemyShots.splice(i, 1);
+      }
+      if (collision) {
+        this.rules.damageAircraft();
+        this.invulnerableUntil = this.elapsed + 750;
+        this.aircraft.alpha = .5;
+        this.updateHud();
+        if (this.rules.outcome) { this.finish(this.rules.outcome); return; }
+      }
+    }
+  }
   removeShot(index) {
     this.shots[index].shape.destroy();
     this.shots.splice(index, 1);
@@ -267,6 +311,8 @@ class FlightScene extends Phaser.Scene {
     this.finished = true;
     for (const shot of this.shots) shot.shape.destroy();
     this.shots = [];
+    for (const shot of this.enemyShots) shot.shape.destroy();
+    this.enemyShots = [];
     this.dragPointer = null;
     this.previousPointer = null;
     this.aircraft.alpha = 1;
@@ -401,6 +447,9 @@ class FlightScene extends Phaser.Scene {
         if (this.rules.outcome) { this.finish(this.rules.outcome); return; }
       }
     }
+    if (this.boss) this.fireBossProjectiles();
+    this.advanceBossProjectiles(dt);
+    if (this.finished) return;
     const firing = advanceWeapons(this.weaponState, delta,
       { x: this.aircraft.x, y: this.aircraft.y },
       [...this.balloons.values()].map(balloon => ({ id: balloon.id, x: balloon.circle.x, y: balloon.circle.y, resolved: balloon.state.resolved }))
