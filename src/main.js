@@ -26,6 +26,16 @@ class FlightScene extends Phaser.Scene {
   preload() {
     this.load.image('player-jet', import.meta.env.BASE_URL + 'assests/aircraft/Jet-plane.webp');
     this.load.image('balloon-basic', import.meta.env.BASE_URL + 'assests/ballons/pink-balloon.webp');
+    this.load.image('balloon-durable-3', import.meta.env.BASE_URL + 'assests/ballons/durable-undamaged.webp');
+    this.load.image('balloon-durable-2', import.meta.env.BASE_URL + 'assests/ballons/durable-damaged-once.webp');
+    this.load.image('balloon-durable-1', import.meta.env.BASE_URL + 'assests/ballons/durable-damaged-twice.webp');
+    this.load.image('balloon-layered-3', import.meta.env.BASE_URL + 'assests/ballons/layered-outer-layer.webp');
+    this.load.image('balloon-layered-2', import.meta.env.BASE_URL + 'assests/ballons/layered-middle-layer.webp');
+    this.load.image('balloon-layered-1', import.meta.env.BASE_URL + 'assests/ballons/layered-inner-layer.webp');
+    this.load.image('boss-city', import.meta.env.BASE_URL + 'assests/ballons/giant-party-balloon.webp');
+    this.load.image('boss-zoo-awakens', import.meta.env.BASE_URL + 'assests/ballons/zoo-boss-awakens.webp');
+    this.load.image('boss-zoo-going-wild', import.meta.env.BASE_URL + 'assests/ballons/zoo-boss-going-wild.webp');
+    this.load.image('boss-zoo-last-gasp', import.meta.env.BASE_URL + 'assests/ballons/zoo-boss-last-gasp.webp');
     // Preserve the existing uploaded asset directory spelling.
     this.load.image('city-park-upload', import.meta.env.BASE_URL +
       'assests/background/D12D1FB4-4F36-428F-B3AC-009D1DC63DF8-background.webp');
@@ -122,11 +132,12 @@ class FlightScene extends Phaser.Scene {
       const type = wave.types ? wave.types[i % wave.types.length] : 'basic';
       const state = createBalloonState(id, type);
       const stage = balloonAppearance(state);
-      const circle = type === 'basic' && this.textures.exists('balloon-basic')
-        ? this.add.image(x, y, 'balloon-basic').setDisplaySize(stage.radius * 2, stage.radius * 2).setDepth(2)
+      const texture = this.balloonTexture(type, state.remainingHits);
+      const circle = this.textures.exists(texture)
+        ? this.add.image(x, y, texture).setDisplaySize(stage.radius * 2, stage.radius * 2).setDepth(2)
         : this.add.circle(x,y,stage.radius,this.balloonColor(type,0)).setStrokeStyle(2,0xfff4d6).setDepth(2);
-      // Keep the existing circle-radius collision interface for image sprites.
-      if (type === 'basic' && circle.type === 'Image') circle.radius = stage.radius;
+      // Preserve the original gameplay radius independently of image bounds.
+      if (circle.type === 'Image') circle.radius = stage.radius;
       this.balloons.set(id,{id,state,circle,originX:x,age:0,speed:wave.speed,pattern:wave.pattern,phase:i*1.6});
     }
   }
@@ -134,8 +145,11 @@ class FlightScene extends Phaser.Scene {
     this.bossSpawned = true;
     const zoo = this.mission.id === 20;
     const config = zoo ? ZOO_BOSS : CITY_PARK_BOSS;
-    const shape = this.add.circle(WIDTH / 2, 105, config.radius, zoo ? 0xb4db73 : 0xf27ab9)
-      .setStrokeStyle(5, 0xffe59b).setDepth(3);
+    const bossTexture = zoo ? 'boss-zoo-awakens' : 'boss-city';
+    const shape = this.textures.exists(bossTexture)
+      ? this.add.image(WIDTH / 2, 105, bossTexture).setDisplaySize(config.radius * 2, config.radius * 2).setDepth(3)
+      : this.add.circle(WIDTH / 2, 105, config.radius, zoo ? 0xb4db73 : 0xf27ab9)
+        .setStrokeStyle(5, 0xffe59b).setDepth(3);
     this.boss = { shape, health: config.health, age: 0, attack: { startX: WIDTH / 2, targetX: WIDTH / 2 }, lastPhase: 'patrol' };
     this.bossWarning = this.add.text(WIDTH / 2, 190, 'DIVE INCOMING!', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#ffdd76' }).setOrigin(.5).setDepth(9).setVisible(false);
     this.bossLabel = this.add.text(WIDTH / 2, 35, zoo ? 'THE MUTANT MENAGERIE' : 'GIANT PARTY BALLOON',
@@ -151,8 +165,15 @@ class FlightScene extends Phaser.Scene {
     this.bossBar.width = 250 * this.boss.health / config.health;
     if (zoo) {
       const phase = zooBossPhase(this.boss.health);
-      this.boss.shape.setRadius(zooBossRadius(this.boss.health));
-      this.boss.shape.setFillStyle(phase === 'last-gasp' ? 0xf6b77a : phase === 'going-wild' ? 0xe0dd73 : 0xb4db73);
+      const radius = zooBossRadius(this.boss.health);
+      if (this.boss.shape.type === 'Image') {
+        const texture = 'boss-zoo-' + phase;
+        if (this.textures.exists(texture)) this.boss.shape.setTexture(texture);
+        this.boss.shape.setDisplaySize(radius * 2, radius * 2);
+      } else {
+        this.boss.shape.setRadius(radius);
+        this.boss.shape.setFillStyle(phase === 'last-gasp' ? 0xf6b77a : phase === 'going-wild' ? 0xe0dd73 : 0xb4db73);
+      }
     }
     if (!zoo && bossPhase(this.boss.health) === 'reinforcements' &&
         !Number.isFinite(this.nextReinforcementAt))
@@ -167,6 +188,11 @@ class FlightScene extends Phaser.Scene {
       this.balloons.clear();
       this.finish('victory');
     }
+  }
+  balloonTexture(type, remainingHits) {
+    if (type === 'basic') return 'balloon-basic';
+    if (type === 'durable' || type === 'layered') return 'balloon-' + type + '-' + remainingHits;
+    return '';
   }
   balloonColor(type, removed) {
     if (type === 'layered') return [0x9c86f5, 0x55bfe5, 0xff779a][removed];
@@ -183,9 +209,16 @@ class FlightScene extends Phaser.Scene {
     }
     const removed = balloon.state.remainingHits;
     const stage = balloonAppearance(balloon.state);
-    balloon.circle.setRadius(stage.radius);
-    balloon.circle.setFillStyle(this.balloonColor(balloon.state.type, 3 - removed));
-    balloon.circle.setStrokeStyle(3,0xffffff);
+    if (balloon.circle.type === 'Image') {
+      const texture = this.balloonTexture(balloon.state.type, balloon.state.remainingHits);
+      if (this.textures.exists(texture)) balloon.circle.setTexture(texture);
+      balloon.circle.setDisplaySize(stage.radius * 2, stage.radius * 2);
+      balloon.circle.radius = stage.radius;
+    } else {
+      balloon.circle.setRadius(stage.radius);
+      balloon.circle.setFillStyle(this.balloonColor(balloon.state.type, 3 - removed));
+      balloon.circle.setStrokeStyle(3,0xffffff);
+    }
     // The same balloon object keeps its position, movement pattern and identity.
   }
   fireVolley(volley) {
