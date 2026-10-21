@@ -26,6 +26,10 @@ class FlightScene extends Phaser.Scene {
   preload() {
     this.load.image('player-jet', import.meta.env.BASE_URL + 'assests/aircraft/jet-pack-Jim.webp');
     this.load.image('standard-dart', import.meta.env.BASE_URL + 'assests/projectiles/standard-dart.webp');
+    this.load.image('heavy-dart', import.meta.env.BASE_URL + 'assests/projectiles/heavy-dart.webp');
+    this.load.image('piercing-dart', import.meta.env.BASE_URL + 'assests/projectiles/piercing-dart.webp');
+    this.load.image('seeking-dart', import.meta.env.BASE_URL + 'assests/projectiles/seeking-dart.webp');
+    this.load.image('burst-dart', import.meta.env.BASE_URL + 'assests/projectiles/burst-dart.webp');
     this.load.image('balloon-basic', import.meta.env.BASE_URL + 'assests/ballons/pink-balloon.webp');
     this.load.image('balloon-durable-3', import.meta.env.BASE_URL + 'assests/ballons/durable-undamaged.webp');
     this.load.image('balloon-durable-2', import.meta.env.BASE_URL + 'assests/ballons/durable-damaged-once.webp');
@@ -244,16 +248,21 @@ class FlightScene extends Phaser.Scene {
     if (!weapon) return;
     const specs = projectileSpecs(weapon, { x: this.aircraft.x, y: this.aircraft.y }, volley.targetId);
     for (const spec of specs) {
-      // Reuse the approved standard dart for ordinary one-damage straight shots.
-      // Specialized and seeking shots retain their existing placeholders until approved assets arrive.
-      const standard = spec.kind === 'straight' && spec.damage === 1 &&
-        !spec.piercing && !spec.splashRadius;
-      const shape = standard
-        ? this.add.image(spec.x, spec.y, 'standard-dart').setDisplaySize(12, 22)
-            .setRotation(Math.atan2(spec.vx, -spec.vy)).setDepth(3)
-        : spec.kind === 'tracking'
-          ? this.add.circle(spec.x, spec.y, spec.radius, spec.color).setDepth(3)
-          : this.add.rectangle(spec.x, spec.y, spec.width, spec.height, spec.color).setDepth(3);
+      // Share five approved visual families across all 15 weapons.
+      // Special effects take priority over targeting; damage-boosted seeking darts use heavy art.
+      const sprite = spec.splashRadius > 0 ? 'burst-dart'
+        : spec.piercing ? 'piercing-dart'
+        : spec.damage > 1 ? 'heavy-dart'
+        : spec.kind === 'tracking' ? 'seeking-dart'
+        : 'standard-dart';
+      const dimensions = {
+        'standard-dart': [12, 22], 'heavy-dart': [16, 27],
+        'piercing-dart': [12, 28], 'seeking-dart': [13, 24],
+        'burst-dart': [17, 25]
+      };
+      const shape = this.add.image(spec.x, spec.y, sprite)
+        .setDisplaySize(...dimensions[sprite])
+        .setRotation(Math.atan2(spec.vx, -spec.vy)).setDepth(3);
       this.shots.push({ shape, kind: spec.kind, targetId: spec.targetId,
         speed: spec.speed, damage: spec.damage, piercing: spec.piercing, splashRadius: spec.splashRadius, hitIds: new Set(), vx: spec.vx, vy: spec.vy, lifetime: 0 });
     }
@@ -507,6 +516,7 @@ class FlightScene extends Phaser.Scene {
         const distance = Math.hypot(dx, dy);
         const step = shot.speed * dt;
         if (distance > 0) {
+          shot.shape.setRotation(Math.atan2(dx, -dy));
           shot.shape.x += dx / distance * Math.min(step, distance);
           shot.shape.y += dy / distance * Math.min(step, distance);
         }
@@ -518,6 +528,7 @@ class FlightScene extends Phaser.Scene {
         const distance = Math.hypot(dx, dy);
         const step = shot.speed * dt;
         if (distance > 0) {
+          shot.shape.setRotation(Math.atan2(dx, -dy));
           shot.shape.x += dx / distance * Math.min(step, distance);
           shot.shape.y += dy / distance * Math.min(step, distance);
         }
