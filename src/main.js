@@ -855,6 +855,7 @@ renderShop();
 function createGame() {
   return new Phaser.Game({
   type:Phaser.AUTO,parent:'game',width:WIDTH,height:HEIGHT,backgroundColor:'#142c42',
+  input:{activePointers:3}, // Independent simultaneous steering and FIRE touches on iPhone.
   scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:WIDTH,height:HEIGHT},
   render:{pixelArt:false,antialias:true},scene:[FlightScene]
   });
