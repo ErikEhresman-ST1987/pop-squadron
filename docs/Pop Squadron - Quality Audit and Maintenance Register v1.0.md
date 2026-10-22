@@ -64,3 +64,15 @@ Copy for every new audit:
 
 ## Recordkeeping
 Update this register in the same maintenance batch as relevant changes or immediately after verification. A passing GitHub Actions deployment proves CI and publishing, not every on-device behavior; record both independently. Retain failed attempts in the record when they explain a correction. Do not silently erase deferred items when a new sector begins.
+
+## Audit 2026-10-22 - Documentation consolidation
+
+Baseline: Missions 1-30 implemented; Thornback previously deployed and playtested on iPhone. Documentation review identified an empty README, early three-mission reconstructed drafts, overlapping campaign references, and outdated Beach/Desert sector metadata.
+
+Completed: Created Project Guide v2.0 and Campaign Design and Gameplay Evolution v2.0 as the two current design/implementation references; retained this maintenance register as the third current reference. Updated README to index them. Retained five older documents as historical references. Updated sectorDefinitions.js and its test to Beach Boardwalk and Carnival; Carnival boss remains undecided.
+
+Verification: GitHub Actions run 39838690276 completed successfully for commit b708217, including the documentation and sector metadata changes. This confirms the prior batch deployment, not this new register-entry commit. No fresh iPhone test of sector labels has been reported. No combat tuning or player save changes were made.
+
+Playtest observations: Mission 29 was beaten twice consecutively; latest report: three balloon escapes and one hull hit, with challenging but beatable weaving. Mission 30 Thornback was beaten with a couple of hull hits; easier than Mission 29, but enjoyable, with well-received artwork, movement and thorn attacks. Retain both encounters for now.
+
+Outstanding: Verify CI and deployment of this register update. Later confirm Beach Boardwalk and Carnival labels on iPhone. Deferred cache maintenance item M-004 remains unchanged.
