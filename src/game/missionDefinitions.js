@@ -250,6 +250,11 @@ export const MISSIONS = Object.freeze([
     wave(73200, 'formation', 15, 154, ['layered', 'durable', 'basic']),
     wave(85200, 'drift', 16, 158, ['basic', 'durable', 'layered']),
     wave(97200, 'weave', 14, 151, ['durable', 'layered', 'basic'])
+  ]),
+  mission(30, 'Mission 30: Thornback', 'Boss', [
+    wave(1200, 'formation', 7, 118, ['basic', 'durable', 'basic']),
+    wave(12200, 'weave', 8, 124, ['basic', 'durable']),
+    wave(23200, 'drift', 8, 130, ['durable', 'basic', 'basic'])
   ])
 ]);
 
