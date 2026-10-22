@@ -166,6 +166,21 @@ export const MISSIONS = Object.freeze([
     wave(1200, 'formation', 9, 120, ['basic', 'durable', 'layered']),
     wave(11200, 'drift', 10, 133, ['layered', 'basic', 'durable']),
     wave(21200, 'formation', 11, 142, ['durable', 'layered', 'basic'])
+  ]),
+  // Forest Outbreak: familiar entry, then predictable smooth weaving.
+  mission(21, 'Mission 21: Into the Woods', 'Forest Entry', [
+    wave(1200, 'formation', 11, 118, ['basic', 'durable', 'basic']),
+    wave(14200, 'drift', 12, 126, ['basic', 'layered', 'durable']),
+    wave(27200, 'formation', 13, 132, ['durable', 'basic', 'layered']),
+    wave(40200, 'drift', 14, 138, ['basic', 'durable', 'layered']),
+    wave(53200, 'formation', 15, 143, ['layered', 'basic', 'durable'])
+  ]),
+  mission(22, 'Mission 22: Winding Paths', 'Weaving', [
+    wave(1200, 'weave', 7, 112, ['basic']),
+    wave(15800, 'formation', 10, 124, ['basic', 'durable']),
+    wave(30600, 'weave', 9, 120, ['basic', 'basic', 'durable']),
+    wave(45400, 'drift', 11, 132, ['basic', 'layered', 'durable']),
+    wave(60200, 'weave', 11, 128, ['basic', 'durable', 'basic'])
   ])
 ]);
 
