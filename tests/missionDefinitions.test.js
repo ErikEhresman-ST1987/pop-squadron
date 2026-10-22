@@ -4,7 +4,7 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('twenty-two ordered authored missions with stable lookup', () => {
+test('twenty-three ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
@@ -12,7 +12,7 @@ test('twenty-two ordered authored missions with stable lookup', () => {
     [11, 'Moderate'], [12, 'Fast'], [13, 'Armored'],
     [14, 'Tactical'], [15, 'Intense'], [16, 'Challenging'],
     [17, 'Tactical'], [18, 'Intense'], [19, 'Pre-Boss'], [20, 'Boss'],
-    [21, 'Forest Entry'], [22, 'Weaving']
+    [21, 'Forest Entry'], [22, 'Weaving'], [23, 'Armored Weaving']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -160,5 +160,18 @@ test('Forest weaving is introduced only in Mission 22 and keeps standard combat 
   assert.ok(entry.waves.every(w => w.pattern !== 'weave'));
   assert.ok(winding.waves.some(w => w.pattern === 'weave'));
   for (const m of [entry, winding]) assert.deepEqual([m.health, m.collisionDamage, m.escapeAllowance], [100, 20, 5]);
-  assert.equal(getMission(23), null);
+  assert.equal(getMission(24), null);
+});
+
+
+test('Mission 23 combines durable balloons and weaving without changing core rules', () => {
+  const winding = getMission(22), thicker = getMission(23);
+  assert.equal(thicker.name, 'Mission 23: Thicker Skins');
+  assert.deepEqual([thicker.health, thicker.collisionDamage, thicker.escapeAllowance], [100, 20, 5]);
+  assert.ok(thicker.waves.some(w => w.pattern === 'weave' && w.types.includes('durable')));
+  assert.ok(thicker.waves.some(w => w.pattern === 'formation'));
+  assert.ok(thicker.waves.some(w => w.pattern === 'drift'));
+  assert.ok(thicker.waves.reduce((n, w) => n + w.count, 0) > winding.waves.reduce((n, w) => n + w.count, 0));
+  assert.ok(thicker.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
+  assert.equal(getMission(24), null);
 });
