@@ -266,8 +266,15 @@ class FlightScene extends Phaser.Scene {
         'piercing-dart': [12, 28], 'seeking-dart': [13, 24],
         'burst-dart': [17, 25]
       };
-      const shape = this.add.image(spec.x, spec.y, sprite)
-        .setDisplaySize(...dimensions[sprite])
+      // A slightly enlarged warm silhouette behind the original art stays visible
+      // at small gameplay sizes against dark forest scenery. Both layers share
+      // one container, so tracking, rotation and cleanup remain unchanged.
+      const [width, height] = dimensions[sprite];
+      const outline = this.add.image(0, 0, sprite)
+        .setDisplaySize(width + 4, height + 4)
+        .setTintFill(0xffe59b).setAlpha(0.85);
+      const artwork = this.add.image(0, 0, sprite).setDisplaySize(width, height);
+      const shape = this.add.container(spec.x, spec.y, [outline, artwork])
         .setRotation(Math.atan2(spec.vx, -spec.vy)).setDepth(3);
       this.shots.push({ shape, kind: spec.kind, targetId: spec.targetId,
         speed: spec.speed, damage: spec.damage, piercing: spec.piercing, splashRadius: spec.splashRadius, hitIds: new Set(), vx: spec.vx, vy: spec.vy, lifetime: 0 });
