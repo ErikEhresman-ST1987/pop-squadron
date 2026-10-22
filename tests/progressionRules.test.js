@@ -131,11 +131,12 @@ test('Zoo missions 17–19 unlock sequentially and stop before the unbuilt boss'
 });
 
 
-test('beating Zoo boss unlocks Forest, then stops after authored Mission 22', () => {
+test('beating Zoo boss unlocks Forest through authored Mission 23', () => {
   const twenty = { highestUnlocked: 20 };
   const twentyOne = completeMission(twenty, 20, 'victory');
   assert.deepEqual(twentyOne, { highestUnlocked: 21 });
   assert.deepEqual(completeMission(twentyOne, 21, 'victory'), { highestUnlocked: 22 });
-  assert.deepEqual(completeMission({ highestUnlocked: 22 }, 22, 'victory'), { highestUnlocked: 22 });
+  assert.deepEqual(completeMission({ highestUnlocked: 22 }, 22, 'victory'), { highestUnlocked: 23 });
+  assert.deepEqual(completeMission({ highestUnlocked: 23 }, 23, 'victory'), { highestUnlocked: 23 });
   assert.deepEqual(completeMission(twenty, 19, 'victory'), twenty);
 });
