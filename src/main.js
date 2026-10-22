@@ -16,7 +16,7 @@ import { SHOP_WEAPONS, purchaseWeapon } from './game/shopRules.js';
 import { readProgress, saveProgress, isMissionUnlocked, completeMission } from './game/progressionRules.js';
 import { rewardForBalloon, addReward } from './game/currencyRules.js';
 import { readWallet, creditWallet } from './game/walletRules.js';
-import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval, zooAttackTiming, zooAttackPosition } from './game/bossRules.js';
+import { CITY_PARK_BOSS, bossHit, bossPhase, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval, zooAttackTiming, zooAttackPosition, THORNBACK_BOSS, thornbackPhase, thornbackPosition, thornbackShotPattern, thornbackEscortCount } from './game/bossRules.js';
 
 const WIDTH = 360, HEIGHT = 640, SPEED = 265, LIMIT = 30;
 const clamp = (value, low, high) => Phaser.Math.Clamp(value, low, high);
@@ -41,6 +41,10 @@ class FlightScene extends Phaser.Scene {
     this.load.image('boss-zoo-awakens', import.meta.env.BASE_URL + 'assests/ballons/zoo-boss-awakens.webp');
     this.load.image('boss-zoo-going-wild', import.meta.env.BASE_URL + 'assests/ballons/zoo-boss-going-wild.webp');
     this.load.image('boss-zoo-last-gasp', import.meta.env.BASE_URL + 'assests/ballons/zoo-boss-last-gasp.webp');
+    this.load.image('boss-thornback-intact', import.meta.env.BASE_URL + 'assests/ballons/thornback-intact.webp');
+    this.load.image('boss-thornback-damaged', import.meta.env.BASE_URL + 'assests/ballons/thornback-damaged.webp');
+    this.load.image('boss-thornback-critical', import.meta.env.BASE_URL + 'assests/ballons/thornback-critical.webp');
+    this.load.image('thorn-projectile', import.meta.env.BASE_URL + 'assests/projectiles/thorn-projectile.webp');
     // Preserve the existing uploaded asset directory spelling.
     this.load.image('city-park-upload', import.meta.env.BASE_URL +
       'assests/background/D12D1FB4-4F36-428F-B3AC-009D1DC63DF8-background.webp');
@@ -77,6 +81,7 @@ class FlightScene extends Phaser.Scene {
     this.boss = null;
     this.bossSpawned = false;
     this.nextReinforcementAt = Infinity;
+    this.thornEscortsSpawned = 0;
     this.cameras.main.setBackgroundColor('#91bd7b');
     // Use uploaded artwork for City Park and Zoo Entrance; remaining Zoo zones retain generated scenery.
     const theme = sceneryTheme(this.mission.id);
@@ -170,15 +175,16 @@ class FlightScene extends Phaser.Scene {
   spawnBoss() {
     this.bossSpawned = true;
     const zoo = this.mission.id === 20;
-    const config = zoo ? ZOO_BOSS : CITY_PARK_BOSS;
-    const bossTexture = zoo ? 'boss-zoo-awakens' : 'boss-city';
+    const thorn = this.mission.id === 30;
+    const config = thorn ? THORNBACK_BOSS : zoo ? ZOO_BOSS : CITY_PARK_BOSS;
+    const bossTexture = thorn ? 'boss-thornback-intact' : zoo ? 'boss-zoo-awakens' : 'boss-city';
     const shape = this.textures.exists(bossTexture)
       ? this.add.image(WIDTH / 2, 105, bossTexture).setDisplaySize(config.radius * 2, config.radius * 2).setDepth(3)
-      : this.add.circle(WIDTH / 2, 105, config.radius, zoo ? 0xb4db73 : 0xf27ab9)
+      : this.add.circle(WIDTH / 2, 105, config.radius, thorn ? 0x7954a3 : zoo ? 0xb4db73 : 0xf27ab9)
         .setStrokeStyle(5, 0xffe59b).setDepth(3);
-    this.boss = { shape, health: config.health, age: 0, nextShotAt: this.elapsed + (zoo ? 2600 : 3500), attack: { startX: WIDTH / 2, targetX: WIDTH / 2 }, lastPhase: 'patrol' };
+    this.boss = { shape, health: config.health, age: 0, volleyIndex: 0, nextShotAt: this.elapsed + (thorn ? 3500 : zoo ? 2600 : 3500), attack: { startX: WIDTH / 2, targetX: WIDTH / 2 }, lastPhase: 'patrol' };
     this.bossWarning = this.add.text(WIDTH / 2, 190, 'DIVE INCOMING!', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#ffdd76' }).setOrigin(.5).setDepth(9).setVisible(false);
-    this.bossLabel = this.add.text(WIDTH / 2, 35, zoo ? 'THE MUTANT MENAGERIE' : 'GIANT PARTY BALLOON',
+    this.bossLabel = this.add.text(WIDTH / 2, 35, thorn ? 'THORNBACK' : zoo ? 'THE MUTANT MENAGERIE' : 'GIANT PARTY BALLOON',
       { fontFamily: 'system-ui', fontSize: '15px', color: '#fff0c9' }).setOrigin(.5).setDepth(9);
     this.bossBar = this.add.rectangle(WIDTH / 2, 55, 250, 12, 0x6de2a6).setDepth(9);
     if (zoo) this.nextReinforcementAt = this.elapsed + zooEscortInterval('awakens');
@@ -187,8 +193,14 @@ class FlightScene extends Phaser.Scene {
     if (!this.boss) return;
     this.boss.health = bossHit(this.boss.health, damage);
     const zoo = this.mission.id === 20;
-    const config = zoo ? ZOO_BOSS : CITY_PARK_BOSS;
+    const thorn = this.mission.id === 30;
+    const config = thorn ? THORNBACK_BOSS : zoo ? ZOO_BOSS : CITY_PARK_BOSS;
     this.bossBar.width = 250 * this.boss.health / config.health;
+    if (thorn && this.boss.health > 0) {
+      const phase = thornbackPhase(this.boss.health);
+      if (this.boss.shape.type === 'Image') this.boss.shape.setTexture('boss-thornback-' + phase);
+      if (phase === 'damaged' && !Number.isFinite(this.nextReinforcementAt)) this.nextReinforcementAt = this.elapsed + 2600;
+    }
     if (zoo) {
       const phase = zooBossPhase(this.boss.health);
       const radius = zooBossRadius(this.boss.health);
@@ -201,7 +213,7 @@ class FlightScene extends Phaser.Scene {
         this.boss.shape.setFillStyle(phase === 'last-gasp' ? 0xf6b77a : phase === 'going-wild' ? 0xe0dd73 : 0xb4db73);
       }
     }
-    if (!zoo && bossPhase(this.boss.health) === 'reinforcements' &&
+    if (!zoo && !thorn && bossPhase(this.boss.health) === 'reinforcements' &&
         !Number.isFinite(this.nextReinforcementAt))
       this.nextReinforcementAt = this.elapsed + 2500;
     if (this.boss.health === 0) {
@@ -283,6 +295,21 @@ class FlightScene extends Phaser.Scene {
   fireBossProjectiles() {
     if (!this.boss || this.elapsed < this.boss.nextShotAt) return;
     const zoo = this.mission.id === 20;
+    if (this.mission.id === 30) {
+      const phase = thornbackPhase(this.boss.health);
+      const pattern = thornbackShotPattern(phase, this.boss.volleyIndex++);
+      const dx = this.aircraft.x - this.boss.shape.x;
+      const dy = this.aircraft.y - this.boss.shape.y;
+      const center = Math.atan2(dy, dx);
+      for (let i = 0; i < pattern.count; i++) {
+        const angle = center + (i - (pattern.count - 1) / 2) * pattern.spread;
+        const shape = this.add.image(this.boss.shape.x, this.boss.shape.y + 30, 'thorn-projectile')
+          .setDisplaySize(15, 27).setRotation(angle + Math.PI / 2).setDepth(4);
+        this.enemyShots.push({ shape, vx: Math.cos(angle) * pattern.speed, vy: Math.sin(angle) * pattern.speed, damage: THORNBACK_BOSS.thornDamage });
+      }
+      this.boss.nextShotAt = this.elapsed + pattern.intervalMs;
+      return;
+    }
     const healthFraction = this.boss.health / (zoo ? ZOO_BOSS.health : CITY_PARK_BOSS.health);
     const aggressive = healthFraction <= 0.5;
     const count = zoo ? (aggressive ? 5 : 3) : (aggressive ? 3 : 1);
@@ -313,7 +340,7 @@ class FlightScene extends Phaser.Scene {
         this.enemyShots.splice(i, 1);
       }
       if (collision) {
-        this.rules.damageAircraft();
+        this.rules.damageAircraft(shot.damage);
         this.invulnerableUntil = this.elapsed + 750;
         this.aircraft.alpha = .5;
         this.updateHud();
@@ -360,6 +387,13 @@ class FlightScene extends Phaser.Scene {
     this.dragPointer = null;
     this.previousPointer = null;
     this.aircraft.alpha = 1;
+    if (outcome === 'victory' && this.mission.id === 30) {
+      const credited = creditWallet(window.localStorage, walletBalance, 1500);
+      walletBalance = credited.balance;
+      walletSaved = credited.saved;
+      this.missionEarnings = addReward(this.missionEarnings, 1500);
+      saveStatus.textContent = 'Thornback defeated · Forest Outbreak complete!';
+    }
     if (outcome === 'victory' && this.mission.id === 20) {
       const credited = creditWallet(window.localStorage, walletBalance, 1500);
       walletBalance = credited.balance;
@@ -411,12 +445,24 @@ class FlightScene extends Phaser.Scene {
       this.waveIndex++;
       this.updateHud();
     }
-    if ((this.mission.id === 10 || this.mission.id === 20) && !this.bossSpawned &&
+    if ((this.mission.id === 10 || this.mission.id === 20 || this.mission.id === 30) && !this.bossSpawned &&
         this.waveIndex === this.mission.waves.length && this.balloons.size === 0 &&
-        this.elapsed >= (this.mission.id === 20 ? ZOO_BOSS : CITY_PARK_BOSS).enterAfterMs) this.spawnBoss();
+        this.elapsed >= (this.mission.id === 30 ? THORNBACK_BOSS : this.mission.id === 20 ? ZOO_BOSS : CITY_PARK_BOSS).enterAfterMs) this.spawnBoss();
     if (this.boss) {
       this.boss.age += dt;
-      if (this.mission.id === 20) {
+      if (this.mission.id === 30) {
+        const position = thornbackPosition(this.boss.age * 1000, this.boss.health);
+        this.boss.shape.setPosition(position.x, position.y);
+        this.bossWarning.setVisible(false);
+        if (this.elapsed >= this.nextReinforcementAt) {
+          const count = thornbackEscortCount(position.phase, this.thornEscortsSpawned);
+          if (count) {
+            this.spawnWave({ count, pattern: 'weave', speed: 118, types: THORNBACK_BOSS.reinforcementTypes });
+            this.thornEscortsSpawned += count;
+          }
+          this.nextReinforcementAt = count ? this.elapsed + THORNBACK_BOSS.escortIntervalMs : Infinity;
+        }
+      } else if (this.mission.id === 20) {
         const phase = zooBossPhase(this.boss.health);
         if (!this.boss.zooAttack) {
           const timing = zooAttackTiming(phase);
@@ -483,7 +529,7 @@ class FlightScene extends Phaser.Scene {
       }
       if (this.elapsed >= this.invulnerableUntil &&
           Math.hypot(this.boss.shape.x - this.aircraft.x, this.boss.shape.y - this.aircraft.y) <
-          (this.mission.id === 20 ? zooBossRadius(this.boss.health) : CITY_PARK_BOSS.radius) + 12) {
+          (this.mission.id === 30 ? THORNBACK_BOSS.radius : this.mission.id === 20 ? zooBossRadius(this.boss.health) : CITY_PARK_BOSS.radius) + 12) {
         this.rules.damageAircraft();
         this.invulnerableUntil = this.elapsed + 750;
         this.aircraft.alpha = .5;
@@ -578,7 +624,7 @@ class FlightScene extends Phaser.Scene {
         if (this.finished) return;
       } else if (this.boss && !shot.hitIds.has('boss') &&
           Math.hypot(shot.shape.x - this.boss.shape.x, shot.shape.y - this.boss.shape.y) <
-          (this.mission.id === 20 ? zooBossRadius(this.boss.health) : CITY_PARK_BOSS.radius) + 7) {
+          (this.mission.id === 30 ? THORNBACK_BOSS.radius : this.mission.id === 20 ? zooBossRadius(this.boss.health) : CITY_PARK_BOSS.radius) + 7) {
         shot.hitIds.add('boss');
         if (!shot.piercing) this.removeShot(i);
         this.hitBoss(shot.damage);
@@ -601,7 +647,7 @@ class FlightScene extends Phaser.Scene {
       }
     }
     if (this.aircraft.alpha<1 && this.elapsed>=this.invulnerableUntil) this.aircraft.alpha=1;
-    const result = (this.mission.id === 10 || this.mission.id === 20) ? this.rules.outcome :
+    const result = (this.mission.id === 10 || this.mission.id === 20 || this.mission.id === 30) ? this.rules.outcome :
       this.rules.checkVictory(this.waveIndex === this.mission.waves.length, this.balloons.size);
     if (result) this.finish(result);
   }
