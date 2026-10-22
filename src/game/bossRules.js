@@ -94,3 +94,43 @@ export function zooAttackPosition(elapsedMs, state) {
   return { x: state.targetX + (state.returnX - state.targetX) * f,
     y: state.targetY + (state.returnY - state.targetY) * f, action: 'retreat' };
 }
+
+
+// Forest Outbreak finale: readable thorn volleys and capped escorts.
+export const THORNBACK_BOSS = Object.freeze({
+  health: 180, radius: 52, enterAfterMs: 32000,
+  phaseThresholds: Object.freeze([0.70, 0.35]),
+  reinforcementTypes: Object.freeze(['basic', 'durable']),
+  escortCap: 15, escortGroupSize: 3,
+  escortIntervalMs: 11000,
+  thornDamage: 10
+});
+export function thornbackPhase(health, maxHealth = THORNBACK_BOSS.health) {
+  if (health <= 0) return 'defeated';
+  if (health <= maxHealth * THORNBACK_BOSS.phaseThresholds[1]) return 'critical';
+  if (health <= maxHealth * THORNBACK_BOSS.phaseThresholds[0]) return 'damaged';
+  return 'intact';
+}
+export function thornbackPosition(ageMs, health) {
+  const t = ageMs / 1000;
+  const phase = thornbackPhase(health);
+  const x = phase === 'critical'
+    ? 180 + Math.sin(t * 2.05) * 90 + Math.sin(t * 0.83) * 18
+    : phase === 'damaged'
+      ? 180 + Math.sin(t * 1.52) * 100 + Math.sin(t * 0.65) * 14
+      : 180 + Math.sin(t * 0.92) * 93;
+  const y = phase === 'critical'
+    ? 125 + Math.sin(t * 1.35) * 42
+    : phase === 'damaged' ? 113 + Math.sin(t * 0.9) * 24 : 107 + Math.sin(t * 0.55) * 12;
+  return { x: Math.max(65, Math.min(295, x)), y: Math.max(75, Math.min(180, y)), phase };
+}
+export function thornbackShotPattern(phase, volleyIndex) {
+  if (phase === 'critical') return { count: volleyIndex % 2 ? 2 : 3, speed: 162, intervalMs: 2500, spread: 0.27 };
+  if (phase === 'damaged') return { count: volleyIndex % 2 ? 2 : 3, speed: 143, intervalMs: 3000, spread: 0.26 };
+  return { count: 3, speed: 126, intervalMs: 3500, spread: 0.28 };
+}
+export function thornbackEscortCount(phase, spawned) {
+  if (phase === 'intact' || phase === 'defeated' || spawned >= THORNBACK_BOSS.escortCap) return 0;
+  if (phase === 'critical' && spawned >= 12) return 0;
+  return Math.min(THORNBACK_BOSS.escortGroupSize, THORNBACK_BOSS.escortCap - spawned);
+}
