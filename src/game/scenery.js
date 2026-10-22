@@ -7,6 +7,9 @@ export function sceneryTheme(id) {
   if (id <= 3) return 'park-entrance';
   if (id <= 6) return 'park-recreation';
   if (id <= 10) return 'park-lakeside';
+  if (id >= 21 && id <= 23) return 'forest-entrance';
+  if (id >= 24 && id <= 27) return 'forest-deep';
+  if (id >= 28 && id <= 30) return 'forest-thornback';
   if (id <= 13) return 'zoo-entrance';
   if (id <= 16) return 'zoo-habitats';
   return 'zoo-wildlands';
