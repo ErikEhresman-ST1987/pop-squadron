@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CITY_PARK_BOSS, bossPhase, bossHit, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval, zooAttackTiming, zooAttackPosition } from '../src/game/bossRules.js';
+import { CITY_PARK_BOSS, bossPhase, bossHit, bossReward, bossAttackPosition, ZOO_BOSS, zooBossPhase, zooBossRadius, zooBossPosition, zooEscortInterval, zooAttackTiming, zooAttackPosition, THORNBACK_BOSS, thornbackPhase, thornbackPosition, thornbackShotPattern, thornbackEscortCount } from '../src/game/bossRules.js';
 import { getMission } from '../src/game/missionDefinitions.js';
 import { completeMission } from '../src/game/progressionRules.js';
 
@@ -68,4 +68,26 @@ test('Zoo charges telegraph, lock a target, strike it and return to upper battle
   }
   assert.ok(zooAttackTiming('last-gasp').warningMs < zooAttackTiming('awakens').warningMs);
   assert.ok(zooAttackTiming('last-gasp').patrolMs < zooAttackTiming('awakens').patrolMs);
+});
+
+test('Thornback phases, movement and attack escalation stay bounded', () => {
+  assert.equal(thornbackPhase(180), 'intact');
+  assert.equal(thornbackPhase(126), 'damaged');
+  assert.equal(thornbackPhase(63), 'critical');
+  assert.equal(thornbackPhase(0), 'defeated');
+  for (const health of [180, 100, 30]) for (let t = 0; t < 60000; t += 333) {
+    const p = thornbackPosition(t, health);
+    assert.ok(p.x >= 65 && p.x <= 295 && p.y >= 75 && p.y <= 180);
+  }
+  assert.ok(thornbackShotPattern('critical', 0).intervalMs < thornbackShotPattern('intact', 0).intervalMs);
+  assert.equal(thornbackShotPattern('damaged', 1).count, 2);
+  assert.equal(THORNBACK_BOSS.thornDamage, 10);
+});
+test('Thornback escorts start in phase two, taper off and never exceed cap', () => {
+  assert.equal(thornbackEscortCount('intact', 0), 0);
+  assert.equal(thornbackEscortCount('damaged', 0), 3);
+  assert.equal(thornbackEscortCount('critical', 9), 3);
+  assert.equal(thornbackEscortCount('critical', 12), 0);
+  assert.equal(thornbackEscortCount('damaged', 15), 0);
+  assert.equal(THORNBACK_BOSS.escortCap, 15);
 });
