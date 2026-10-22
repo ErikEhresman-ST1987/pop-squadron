@@ -107,8 +107,8 @@ export const THORNBACK_BOSS = Object.freeze({
 });
 export function thornbackPhase(health, maxHealth = THORNBACK_BOSS.health) {
   if (health <= 0) return 'defeated';
-  if (health <= maxHealth * THORNBACK_BOSS.phaseThresholds[1]) return 'critical';
-  if (health <= maxHealth * THORNBACK_BOSS.phaseThresholds[0]) return 'damaged';
+  if (health <= Math.ceil(maxHealth * THORNBACK_BOSS.phaseThresholds[1])) return 'critical';
+  if (health <= Math.ceil(maxHealth * THORNBACK_BOSS.phaseThresholds[0])) return 'damaged';
   return 'intact';
 }
 export function thornbackPosition(ageMs, health) {
