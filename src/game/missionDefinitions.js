@@ -190,6 +190,33 @@ export const MISSIONS = Object.freeze([
     wave(45000, 'weave', 10, 122, ['durable', 'basic', 'durable', 'layered']),
     wave(59600, 'formation', 12, 134, ['basic', 'durable', 'layered']),
     wave(74200, 'weave', 11, 128, ['durable', 'basic', 'layered', 'durable'])
+  ]),
+  // Deep Forest: three distinct encounters using the established balloon types
+  // and movement patterns. No new combat mechanics or progression storage.
+  mission(24, 'Mission 24: Forest Rush', 'Fast', [
+    wave(1200, 'drift', 10, 132, ['basic', 'durable', 'basic']),
+    wave(11200, 'formation', 11, 140, ['basic', 'layered', 'durable']),
+    wave(21200, 'weave', 10, 136, ['basic', 'durable', 'basic']),
+    wave(31200, 'drift', 12, 146, ['durable', 'basic', 'layered']),
+    wave(41200, 'formation', 13, 152, ['basic', 'layered', 'durable']),
+    wave(51200, 'weave', 12, 148, ['basic', 'durable', 'layered'])
+  ]),
+  mission(25, 'Mission 25: Crosswinds', 'Tactical Weaving', [
+    wave(1200, 'drift', 11, 128, ['basic', 'durable', 'layered']),
+    wave(12800, 'weave', 10, 126, ['basic', 'durable', 'basic']),
+    wave(24400, 'formation', 12, 136, ['layered', 'basic', 'durable']),
+    wave(36000, 'weave', 12, 132, ['durable', 'basic', 'layered']),
+    wave(47600, 'drift', 13, 143, ['basic', 'layered', 'durable']),
+    wave(59200, 'weave', 13, 138, ['basic', 'durable', 'layered'])
+  ]),
+  mission(26, 'Mission 26: Tangled Trouble', 'Armored Endurance', [
+    wave(1200, 'formation', 11, 122, ['durable', 'layered', 'basic']),
+    wave(14200, 'weave', 11, 124, ['durable', 'layered', 'basic', 'durable']),
+    wave(27200, 'drift', 13, 134, ['layered', 'durable', 'basic']),
+    wave(40200, 'weave', 12, 130, ['layered', 'durable', 'layered', 'basic']),
+    wave(53200, 'formation', 14, 140, ['durable', 'layered', 'durable', 'basic']),
+    wave(66200, 'weave', 13, 136, ['layered', 'durable', 'basic', 'layered']),
+    wave(79200, 'drift', 15, 146, ['durable', 'layered', 'basic', 'durable'])
   ])
 ]);
 
