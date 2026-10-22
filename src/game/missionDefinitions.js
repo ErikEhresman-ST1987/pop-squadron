@@ -238,16 +238,18 @@ export const MISSIONS = Object.freeze([
     wave(56200, 'drift', 17, 153, ['layered', 'durable', 'basic', 'durable']),
     wave(67200, 'formation', 18, 157, ['durable', 'layered', 'durable'])
   ]),
+  // Rebalanced after iPhone playtest: fewer simultaneous targets, slower peaks,
+  // and more recovery time between waves. All established patterns remain.
   mission(29, 'Mission 29: Deep Woods', 'Pre-Boss', [
-    wave(1200, 'formation', 13, 142, ['basic', 'durable', 'layered']),
-    wave(10200, 'drift', 15, 150, ['durable', 'basic', 'layered']),
-    wave(19200, 'weave', 14, 145, ['basic', 'durable', 'layered']),
-    wave(28200, 'formation', 17, 156, ['layered', 'durable', 'basic']),
-    wave(37200, 'drift', 18, 163, ['basic', 'layered', 'durable']),
-    wave(46200, 'weave', 16, 154, ['durable', 'layered', 'basic']),
-    wave(55200, 'formation', 20, 170, ['layered', 'durable', 'basic']),
-    wave(64200, 'drift', 21, 176, ['basic', 'durable', 'layered']),
-    wave(73200, 'weave', 19, 164, ['durable', 'layered', 'basic'])
+    wave(1200, 'formation', 11, 132, ['basic', 'durable', 'layered']),
+    wave(13200, 'drift', 12, 138, ['durable', 'basic', 'layered']),
+    wave(25200, 'weave', 11, 135, ['basic', 'durable', 'layered']),
+    wave(37200, 'formation', 13, 144, ['layered', 'durable', 'basic']),
+    wave(49200, 'drift', 14, 150, ['basic', 'layered', 'durable']),
+    wave(61200, 'weave', 12, 143, ['durable', 'layered', 'basic']),
+    wave(73200, 'formation', 15, 154, ['layered', 'durable', 'basic']),
+    wave(85200, 'drift', 16, 158, ['basic', 'durable', 'layered']),
+    wave(97200, 'weave', 14, 151, ['durable', 'layered', 'basic'])
   ])
 ]);
 
