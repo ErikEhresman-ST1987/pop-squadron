@@ -54,6 +54,9 @@ class FlightScene extends Phaser.Scene {
       'assests/background/959B0989-D4F2-483D-A808-3EFEC889E20B-background.webp');
     this.load.image('zoo-wildlands-upload', import.meta.env.BASE_URL +
       'assests/background/9BBE42B9-D016-4281-B2F6-750C91722EF8-background.webp');
+    this.load.image('forest-entrance-upload', import.meta.env.BASE_URL + 'assests/background/forest-background-1.webp');
+    this.load.image('forest-deep-upload', import.meta.env.BASE_URL + 'assests/background/forest-background-2.webp');
+    this.load.image('forest-thornback-upload', import.meta.env.BASE_URL + 'assests/background/forest-background-3.webp');
   }
   create() {
     this.mission = getMission(selectedMissionId); // Selection is captured at mission start.
@@ -82,7 +85,10 @@ class FlightScene extends Phaser.Scene {
       : theme === 'park-lakeside' ? 'city-park-lakeside'
       : theme === 'zoo-entrance' ? 'zoo-entrance-upload'
       : theme === 'zoo-habitats' ? 'zoo-habitats-upload'
-      : theme === 'zoo-wildlands' ? 'zoo-wildlands-upload' : null;
+      : theme === 'zoo-wildlands' ? 'zoo-wildlands-upload'
+      : theme === 'forest-entrance' ? 'forest-entrance-upload'
+      : theme === 'forest-deep' ? 'forest-deep-upload'
+      : theme === 'forest-thornback' ? 'forest-thornback-upload' : null;
     const useCustom = customKey && this.textures.exists(customKey);
     const textureKey = useCustom ? customKey : 'scenery-' + theme;
     if (!useCustom && !this.textures.exists(textureKey)) {
@@ -576,6 +582,7 @@ class FlightScene extends Phaser.Scene {
       balloon.age+=dt;
       balloon.circle.y+=balloon.speed*balloonAppearance(balloon.state).speedMultiplier*dt;
       if (balloon.pattern==='drift') balloon.circle.x=clamp(balloon.originX+Math.sin(balloon.age*2+balloon.phase)*34,15,WIDTH-15);
+       if (balloon.pattern==='weave') balloon.circle.x=clamp(balloon.originX+Math.sin(balloon.age*1.65+balloon.phase)*48,15,WIDTH-15);
       if (balloon.circle.y>HEIGHT+balloon.circle.radius) {
         this.resolveBalloon(balloon,'escape');
         if (this.rules.outcome) { this.finish(this.rules.outcome); return; }
@@ -620,7 +627,7 @@ let game;
 let selectedSectorId = 1;
 function renderMissions() {
   sectorSelector.replaceChildren();
-  const unlockedSectorIds = bossDefeated ? [1, 2] : [1];
+  const unlockedSectorIds = progress.highestUnlocked >= 21 ? [1, 2, 3] : bossDefeated ? [1, 2] : [1];
   if (!unlockedSectorIds.includes(selectedSectorId)) selectedSectorId = 1;
   for (const sector of SECTORS.filter(item => unlockedSectorIds.includes(item.id))) {
     const button = document.createElement('button');
@@ -747,7 +754,7 @@ function closePurchase() {
 const expandedShopCategories = new Set(['primary']);
 function renderShop() {
   shopElement.replaceChildren();
-  const highestSectorUnlocked = bossDefeated ? 2 : 1;
+  const highestSectorUnlocked = progress.highestUnlocked >= 21 ? 3 : bossDefeated ? 2 : 1;
   for (const category of WEAPON_CATEGORIES) {
     const section = document.createElement('section');
     section.className = 'weapon-category';
