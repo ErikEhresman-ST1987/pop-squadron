@@ -4,7 +4,7 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('twenty-nine ordered authored missions with stable lookup', () => {
+test('thirty ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
@@ -14,7 +14,7 @@ test('twenty-nine ordered authored missions with stable lookup', () => {
     [17, 'Tactical'], [18, 'Intense'], [19, 'Pre-Boss'], [20, 'Boss'],
     [21, 'Forest Entry'], [22, 'Weaving'], [23, 'Armored Weaving'],
     [24, 'Fast'], [25, 'Tactical Weaving'], [26, 'Armored Endurance'],
-    [27, 'Tactical'], [28, 'Armored'], [29, 'Pre-Boss']
+    [27, 'Tactical'], [28, 'Armored'], [29, 'Pre-Boss'], [30, 'Boss']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -33,7 +33,7 @@ test('Mission 1 preserves the original four-wave configuration exactly', () => {
 
 test('every mission has valid increasing wave timings and supported definitions', () => {
   for (const m of MISSIONS) {
-    assert.ok(m.waves.length >= ((m.id === 10 || m.id === 20) ? 3 : 4));
+    assert.ok(m.waves.length >= ((m.id === 10 || m.id === 20 || m.id === 30) ? 3 : 4));
     assert.equal(m.health, 100);
     assert.equal(m.escapeAllowance, 5);
     let lastAt = -1;
