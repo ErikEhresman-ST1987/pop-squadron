@@ -4,14 +4,15 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('twenty ordered authored missions with stable lookup', () => {
+test('twenty-two ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
     [7, 'Tactical'], [8, 'Intense'], [9, 'Pre-Boss'], [10, 'Boss'],
     [11, 'Moderate'], [12, 'Fast'], [13, 'Armored'],
     [14, 'Tactical'], [15, 'Intense'], [16, 'Challenging'],
-    [17, 'Tactical'], [18, 'Intense'], [19, 'Pre-Boss'], [20, 'Boss']
+    [17, 'Tactical'], [18, 'Intense'], [19, 'Pre-Boss'], [20, 'Boss'],
+    [21, 'Forest Entry'], [22, 'Weaving']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -37,7 +38,7 @@ test('every mission has valid increasing wave timings and supported definitions'
     for (const w of m.waves) {
       assert.ok(w.at > lastAt);
       lastAt = w.at;
-      assert.ok(['formation', 'drift'].includes(w.pattern));
+      assert.ok(['formation', 'drift', 'weave'].includes(w.pattern));
       assert.ok(Number.isInteger(w.count) && w.count > 0);
       assert.ok(w.speed > 0);
       assert.ok(w.types.length > 0);
@@ -104,7 +105,7 @@ test('Zoo Missions 2 and 3 increase pressure with distinct speed and armor profi
     assert.equal(mission.health, 100);
     assert.equal(mission.collisionDamage, 20);
   }
-  assert.equal(getMission(21), null);
+  assert.equal(getMission(21)?.name, 'Mission 21: Into the Woods');
 });
 
 
@@ -143,7 +144,7 @@ test('Zoo Missions 17–19 escalate crowd pressure and speed without changing co
     assert.ok(mission.waves.some(w => w.pattern === 'formation'));
     assert.ok(mission.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
   }
-  assert.equal(getMission(21), null); // Zoo boss is reserved for a separate increment.
+  assert.equal(getMission(22)?.name, 'Mission 22: Winding Paths');
 });
 
 
@@ -152,4 +153,12 @@ test('Zoo boss has three opening waves and preserves five-escape rule', () => {
   assert.equal(boss.name, 'Mission 20: The Mutant Menagerie');
   assert.equal(boss.waves.length, 3);
   assert.deepEqual([boss.health, boss.collisionDamage, boss.escapeAllowance], [100, 20, 5]);
+});
+
+test('Forest weaving is introduced only in Mission 22 and keeps standard combat rules', () => {
+  const entry = getMission(21), winding = getMission(22);
+  assert.ok(entry.waves.every(w => w.pattern !== 'weave'));
+  assert.ok(winding.waves.some(w => w.pattern === 'weave'));
+  for (const m of [entry, winding]) assert.deepEqual([m.health, m.collisionDamage, m.escapeAllowance], [100, 20, 5]);
+  assert.equal(getMission(23), null);
 });
