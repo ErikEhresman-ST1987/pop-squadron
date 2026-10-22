@@ -13,9 +13,9 @@ export class MissionRules {
     this.outcome = null;
   }
   // Boss contact is damage without resolving a balloon or incrementing escapes.
-  damageAircraft() {
+  damageAircraft(amount = this.config.collisionDamage) {
     if (this.outcome) return false;
-    this.health = Math.max(0, this.health - this.config.collisionDamage);
+    this.health = Math.max(0, this.health - amount);
     if (this.health === 0) this.outcome = 'defeat';
     return true;
   }
