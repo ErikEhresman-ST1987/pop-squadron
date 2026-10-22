@@ -217,6 +217,37 @@ export const MISSIONS = Object.freeze([
     wave(53200, 'formation', 14, 140, ['durable', 'layered', 'durable', 'basic']),
     wave(66200, 'weave', 13, 136, ['layered', 'durable', 'basic', 'layered']),
     wave(79200, 'drift', 15, 146, ['durable', 'layered', 'basic', 'durable'])
+  ]),
+  // Forest Outbreak finale approach: established balloon types only.
+  mission(27, 'Mission 27: Canopy Ambush', 'Tactical', [
+    wave(1200, 'formation', 9, 142, ['basic', 'basic', 'durable']),
+    wave(9200, 'drift', 13, 136, ['durable', 'layered', 'basic']),
+    wave(19200, 'weave', 10, 148, ['basic', 'durable', 'basic']),
+    wave(27200, 'formation', 14, 140, ['layered', 'durable', 'basic']),
+    wave(37200, 'drift', 11, 155, ['basic', 'basic', 'durable']),
+    wave(45200, 'weave', 15, 145, ['durable', 'layered', 'basic']),
+    wave(55200, 'formation', 12, 158, ['basic', 'durable', 'basic']),
+    wave(63200, 'drift', 16, 150, ['layered', 'durable', 'basic'])
+  ]),
+  mission(28, 'Mission 28: Thorn Patrol', 'Armored', [
+    wave(1200, 'formation', 13, 132, ['durable', 'layered', 'durable', 'basic']),
+    wave(12200, 'weave', 12, 130, ['layered', 'durable', 'basic', 'durable']),
+    wave(23200, 'drift', 15, 142, ['durable', 'layered', 'durable']),
+    wave(34200, 'formation', 16, 148, ['layered', 'durable', 'basic', 'durable']),
+    wave(45200, 'weave', 14, 138, ['durable', 'layered', 'durable', 'basic']),
+    wave(56200, 'drift', 17, 153, ['layered', 'durable', 'basic', 'durable']),
+    wave(67200, 'formation', 18, 157, ['durable', 'layered', 'durable'])
+  ]),
+  mission(29, 'Mission 29: Deep Woods', 'Pre-Boss', [
+    wave(1200, 'formation', 13, 142, ['basic', 'durable', 'layered']),
+    wave(10200, 'drift', 15, 150, ['durable', 'basic', 'layered']),
+    wave(19200, 'weave', 14, 145, ['basic', 'durable', 'layered']),
+    wave(28200, 'formation', 17, 156, ['layered', 'durable', 'basic']),
+    wave(37200, 'drift', 18, 163, ['basic', 'layered', 'durable']),
+    wave(46200, 'weave', 16, 154, ['durable', 'layered', 'basic']),
+    wave(55200, 'formation', 20, 170, ['layered', 'durable', 'basic']),
+    wave(64200, 'drift', 21, 176, ['basic', 'durable', 'layered']),
+    wave(73200, 'weave', 19, 164, ['durable', 'layered', 'basic'])
   ])
 ]);
 
