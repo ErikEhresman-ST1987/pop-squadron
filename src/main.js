@@ -453,7 +453,10 @@ class FlightScene extends Phaser.Scene {
       if (this.mission.id === 30) {
         const position = thornbackPosition(this.boss.age * 1000, this.boss.health);
         this.boss.shape.setPosition(position.x, position.y);
-        this.bossWarning.setVisible(false);
+        const untilVolley = this.boss.nextShotAt - this.elapsed;
+        this.bossWarning.setText('THORNS INCOMING!');
+        this.bossWarning.setPosition(clamp(position.x, 90, WIDTH - 90), 205);
+        this.bossWarning.setVisible(untilVolley > 0 && untilVolley <= 700);
         if (this.elapsed >= this.nextReinforcementAt) {
           const count = thornbackEscortCount(position.phase, this.thornEscortsSpawned);
           if (count) {
