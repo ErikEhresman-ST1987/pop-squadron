@@ -5,8 +5,8 @@ import { SECTORS, MISSIONS_PER_SECTOR, getSector, getSectorForMission, isBossMis
 test('ten approved sectors cover exactly 100 missions', () => {
   assert.equal(SECTORS.length, 10);
   assert.equal(MISSIONS_PER_SECTOR, 10);
-  assert.deepEqual(SECTORS.map(s => s.name), ['City Park', 'Zoo', 'Forest', 'Beach', 'Desert', 'Mountains', 'Farmland', 'Industrial Zone', 'Major City', 'Balloon Stronghold']);
-  assert.deepEqual(SECTORS.map(s => s.boss), ['Giant Party Balloon', 'Mutant Animal Balloon', 'Thorn-Armored Balloon', 'Inflatable Sea Monster', 'Heat-Resistant Balloon', 'Armored Weather Balloon', 'Balloon Swarm Queen', 'Mechanical Balloon', 'Balloon Warship', 'Supreme Balloon Commander']);
+  assert.deepEqual(SECTORS.map(s => s.name), ['City Park', 'Zoo', 'Forest', 'Beach Boardwalk', 'Carnival', 'Mountains', 'Farmland', 'Industrial Zone', 'Major City', 'Balloon Stronghold']);
+  assert.deepEqual(SECTORS.map(s => s.boss), ['Giant Party Balloon', 'Mutant Animal Balloon', 'Thorn-Armored Balloon', 'Inflatable Sea Monster', 'To be designed', 'Armored Weather Balloon', 'Balloon Swarm Queen', 'Mechanical Balloon', 'Balloon Warship', 'Supreme Balloon Commander']);
   for (const s of SECTORS) {
     assert.equal(s.firstMissionId, (s.id - 1) * 10 + 1);
     assert.equal(s.lastMissionId, s.id * 10);
