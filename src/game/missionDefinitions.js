@@ -181,6 +181,15 @@ export const MISSIONS = Object.freeze([
     wave(30600, 'weave', 9, 120, ['basic', 'basic', 'durable']),
     wave(45400, 'drift', 11, 132, ['basic', 'layered', 'durable']),
     wave(60200, 'weave', 11, 128, ['basic', 'durable', 'basic'])
+  ]),
+  // Forest Outbreak: tougher balloons combined with the established smooth weave.
+  mission(23, 'Mission 23: Thicker Skins', 'Armored Weaving', [
+    wave(1200, 'formation', 9, 114, ['basic', 'durable', 'basic']),
+    wave(15800, 'weave', 8, 116, ['basic', 'durable', 'basic', 'durable']),
+    wave(30400, 'drift', 11, 126, ['durable', 'basic', 'layered']),
+    wave(45000, 'weave', 10, 122, ['durable', 'basic', 'durable', 'layered']),
+    wave(59600, 'formation', 12, 134, ['basic', 'durable', 'layered']),
+    wave(74200, 'weave', 11, 128, ['durable', 'basic', 'layered', 'durable'])
   ])
 ]);
 
