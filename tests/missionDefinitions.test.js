@@ -213,6 +213,9 @@ test('Forest Missions 27–29 build toward boss using only existing balloons', (
   assert.ok(deep.waves.length > patrol.waves.length);
   assert.ok(deep.waves.some(w => w.pattern === 'weave'));
   assert.ok(deep.waves.at(-1).at > patrol.waves.at(-1).at);
+  assert.equal(count(deep), 118);
+  assert.ok(deep.waves.every((w, i, waves) => i === 0 || w.at - waves[i - 1].at === 12000));
+  assert.ok(Math.max(...deep.waves.map(w => w.speed)) <= 158);
   for (const m of [ambush, patrol, deep]) {
     assert.deepEqual([m.health, m.collisionDamage, m.escapeAllowance], [100, 20, 5]);
     assert.ok(m.waves.every(w => ['formation', 'drift', 'weave'].includes(w.pattern)));
