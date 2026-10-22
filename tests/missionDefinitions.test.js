@@ -162,7 +162,7 @@ test('Forest weaving is introduced only in Mission 22 and keeps standard combat 
   assert.ok(entry.waves.every(w => w.pattern !== 'weave'));
   assert.ok(winding.waves.some(w => w.pattern === 'weave'));
   for (const m of [entry, winding]) assert.deepEqual([m.health, m.collisionDamage, m.escapeAllowance], [100, 20, 5]);
-  assert.equal(getMission(30), null);
+  assert.equal(getMission(31), null);
 });
 
 
@@ -175,7 +175,7 @@ test('Mission 23 combines durable balloons and weaving without changing core rul
   assert.ok(thicker.waves.some(w => w.pattern === 'drift'));
   assert.ok(thicker.waves.reduce((n, w) => n + w.count, 0) > winding.waves.reduce((n, w) => n + w.count, 0));
   assert.ok(thicker.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
-  assert.equal(getMission(30), null);
+  assert.equal(getMission(31), null);
 });
 
 
@@ -196,7 +196,7 @@ test('Deep Forest Missions 24–26 offer speed, weaving, then armored endurance'
     assert.deepEqual([m.health, m.collisionDamage, m.escapeAllowance], [100, 20, 5]);
     assert.ok(m.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
   }
-  assert.equal(getMission(30), null);
+  assert.equal(getMission(31), null);
 });
 
 
@@ -221,5 +221,16 @@ test('Forest Missions 27–29 build toward boss using only existing balloons', (
     assert.ok(m.waves.every(w => ['formation', 'drift', 'weave'].includes(w.pattern)));
     assert.ok(m.waves.every(w => w.types.every(t => BALLOON_TYPES[t])));
   }
-  assert.equal(getMission(30), null);
+  assert.equal(getMission(31), null);
+});
+
+
+test('Thornback is the authored Forest boss with a short opening and existing balloon types', () => {
+  const boss = getMission(30);
+  assert.equal(boss.name, 'Mission 30: Thornback');
+  assert.equal(boss.difficulty, 'Boss');
+  assert.equal(boss.waves.length, 3);
+  assert.deepEqual([boss.health, boss.collisionDamage, boss.escapeAllowance], [100, 20, 5]);
+  assert.ok(boss.waves.every(w => w.types.every(t => BALLOON_TYPES[t])));
+  assert.equal(getMission(31), null);
 });
