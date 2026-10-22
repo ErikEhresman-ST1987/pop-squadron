@@ -4,7 +4,7 @@ import { MISSIONS, getMission } from '../src/game/missionDefinitions.js';
 import { MISSION, MissionRules } from '../src/game/missionRules.js';
 import { BALLOON_TYPES } from '../src/definitions/balloons.js';
 
-test('twenty-six ordered authored missions with stable lookup', () => {
+test('twenty-nine ordered authored missions with stable lookup', () => {
   assert.deepEqual(MISSIONS.map(m => [m.id, m.difficulty]), [
     [1, 'Easy'], [2, 'Moderate'], [3, 'Challenging'],
     [4, 'Building'], [5, 'Fast'], [6, 'Armored'],
@@ -13,7 +13,8 @@ test('twenty-six ordered authored missions with stable lookup', () => {
     [14, 'Tactical'], [15, 'Intense'], [16, 'Challenging'],
     [17, 'Tactical'], [18, 'Intense'], [19, 'Pre-Boss'], [20, 'Boss'],
     [21, 'Forest Entry'], [22, 'Weaving'], [23, 'Armored Weaving'],
-    [24, 'Fast'], [25, 'Tactical Weaving'], [26, 'Armored Endurance']
+    [24, 'Fast'], [25, 'Tactical Weaving'], [26, 'Armored Endurance'],
+    [27, 'Tactical'], [28, 'Armored'], [29, 'Pre-Boss']
   ]);
   assert.equal(getMission(1), MISSION);
   assert.equal(getMission(3), MISSIONS[2]);
@@ -161,7 +162,7 @@ test('Forest weaving is introduced only in Mission 22 and keeps standard combat 
   assert.ok(entry.waves.every(w => w.pattern !== 'weave'));
   assert.ok(winding.waves.some(w => w.pattern === 'weave'));
   for (const m of [entry, winding]) assert.deepEqual([m.health, m.collisionDamage, m.escapeAllowance], [100, 20, 5]);
-  assert.equal(getMission(27), null);
+  assert.equal(getMission(30), null);
 });
 
 
@@ -174,7 +175,7 @@ test('Mission 23 combines durable balloons and weaving without changing core rul
   assert.ok(thicker.waves.some(w => w.pattern === 'drift'));
   assert.ok(thicker.waves.reduce((n, w) => n + w.count, 0) > winding.waves.reduce((n, w) => n + w.count, 0));
   assert.ok(thicker.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
-  assert.equal(getMission(27), null);
+  assert.equal(getMission(30), null);
 });
 
 
@@ -195,5 +196,27 @@ test('Deep Forest Missions 24–26 offer speed, weaving, then armored endurance'
     assert.deepEqual([m.health, m.collisionDamage, m.escapeAllowance], [100, 20, 5]);
     assert.ok(m.waves.every(w => w.types.every(type => BALLOON_TYPES[type])));
   }
-  assert.equal(getMission(27), null);
+  assert.equal(getMission(30), null);
+});
+
+
+test('Forest Missions 27–29 build toward boss using only existing balloons', () => {
+  const [ambush, patrol, deep] = [27, 28, 29].map(getMission);
+  assert.deepEqual([ambush.name, patrol.name, deep.name], [
+    'Mission 27: Canopy Ambush', 'Mission 28: Thorn Patrol', 'Mission 29: Deep Woods'
+  ]);
+  const count = m => m.waves.reduce((n, w) => n + w.count, 0);
+  assert.ok(count(getMission(26)) < count(ambush));
+  assert.ok(count(ambush) < count(patrol) && count(patrol) < count(deep));
+  assert.ok(ambush.waves.some((w, i, waves) => i > 0 && w.at - waves[i - 1].at === 8000));
+  assert.ok(patrol.waves.every(w => w.types.filter(t => t !== 'basic').length >= 2));
+  assert.ok(deep.waves.length > patrol.waves.length);
+  assert.ok(deep.waves.some(w => w.pattern === 'weave'));
+  assert.ok(deep.waves.at(-1).at > patrol.waves.at(-1).at);
+  for (const m of [ambush, patrol, deep]) {
+    assert.deepEqual([m.health, m.collisionDamage, m.escapeAllowance], [100, 20, 5]);
+    assert.ok(m.waves.every(w => ['formation', 'drift', 'weave'].includes(w.pattern)));
+    assert.ok(m.waves.every(w => w.types.every(t => BALLOON_TYPES[t])));
+  }
+  assert.equal(getMission(30), null);
 });
