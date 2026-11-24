@@ -20,6 +20,14 @@ Balloons lost by children in familiar locations drift into the wild, mutate, gai
 
 October 22 approved revision: Beach became Beach Boardwalk, with oceanfront attractions and pier scenery; Desert became Carnival, with midway attractions. The Desert boss concept was retired. Beach Boardwalk retains the Inflatable Sea Monster concept. Later sectors show the invasion spreading into remote places, infrastructure and major cities. Individual future boss mechanics require approval.
 
+## Sector 4 — approved direction and open design (2026-11-23)
+- **Sector:** Beach Boardwalk, Missions 31–40. **Boss concept:** Inflatable Sea Monster at Mission 40; encounter mechanics still open.
+- **Difficulty philosophy:** balanced introduction with variety added gradually, not a mandatory upward difficulty curve.
+- **Fixed background groups (approved):** Missions **31–33: Beachfront**, bright sunny summer scene with sand, umbrellas, shoreline and turquoise water; Missions **34–36: Boardwalk Attractions**, shops, booths, rides and wooden walks; Missions **37–40: Pier and Ocean**, pier and open water leading into the boss.
+- **Mission 31 (approved intent):** moderate / middle-of-the-road difficulty, familiar balloon types, movement patterns, weapons and existing controls; waves with manageable pacing and some busier moments. **No new helium-cloud or obstacle mechanics in Mission 31.** Exact wave counts/timings are not yet approved.
+- **Artwork checkpoint:** Sunny Beachfront creative brief drafted; no approved canonical master or production background exists yet. Use existing approved artwork as style reference. Approve master before technical preparation and in-game verification.
+- **Still proposals, not commitments:** specific names and wave patterns for Missions 32–39, coastal movement changes, first clouds/obstacles and boss phase details. Do not treat earlier brainstorming as implementation authorization.
+
 ## Difficulty and variety
 **Create 100 missions worth playing, not 100 increasingly punishing missions.** Build and playtest one sector at a time; rebalance the full campaign after all ten sectors. Difficulty may rise and fall, and a memorable boss need not be harder than the preceding mission. Evaluate **challenge, variety and enjoyment** separately.
 
@@ -55,6 +63,6 @@ The earlier illustrative mission bands for cloud and obstacle placement are **no
 - Sector 3 is provisionally accepted, pending later campaign-wide balancing.
 
 ## Pending approvals
-Select three helium bonuses and their mechanics; design first obstacle interactions; review existing equipment unlocks; design Sector 4 mission identity and boss; define later campaign balancing criteria.
+Select three helium bonuses and their mechanics; design first obstacle interactions; review existing equipment unlocks; design remaining Sector 4 missions and boss mechanics; define later campaign balancing criteria.
 
 **Change control:** No new feature, gameplay tuning or artwork is authorized by this document alone. Preserve saves, controls, equipment, PWA and current mission behavior.
