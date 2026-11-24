@@ -76,3 +76,9 @@ Verification: GitHub Actions run 39838690276 completed successfully for commit b
 Playtest observations: Mission 29 was beaten twice consecutively; latest report: three balloon escapes and one hull hit, with challenging but beatable weaving. Mission 30 Thornback was beaten with a couple of hull hits; easier than Mission 29, but enjoyable, with well-received artwork, movement and thorn attacks. Retain both encounters for now.
 
 Outstanding: Verify CI and deployment of this register update. Later confirm Beach Boardwalk and Carnival labels on iPhone. Deferred cache maintenance item M-004 remains unchanged.
+
+## Verification addendum — 2026-11-23 (documentation handoff)
+- The outstanding **CI/deployment check for the October 22 documentation consolidation** was subsequently completed: GitHub Actions run **39839080960** passed for commit **5adcf1ba27f759404baa47d5a45d9ce81a1e3eee**, including tests, production build and GitHub Pages deployment. This supersedes the earlier "Outstanding: Verify CI and deployment of this register update" note; retain that earlier note as historical chronology.
+- This verifies the prior documentation deployment, **not** independent on-device activation of the revised sector labels. No new iPhone confirmation of those labels is recorded here.
+- Sector 3 playtest baseline remains accepted provisionally. No new gameplay, persistence, asset, or offline behavior was changed as part of the November 23 documentation handoff. Deferred cache item **M-004** remains deferred and unauthorized.
+- The current resume point and approved Sector 4 decisions are now in the Project Guide and Campaign Design. Future chats should inspect current GitHub source/Actions and the installed iPhone behavior before claiming new work verified.
